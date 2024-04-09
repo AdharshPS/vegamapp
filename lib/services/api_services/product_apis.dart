@@ -11,7 +11,10 @@ class ProductApi {
     filter: $filter
     pageSize: $pageSize
     currentPage: $page
-  ) {
+  ) 
+
+  {
+
     aggregations(filter: { category: { includeDirectChildrenOnly: true } }) {
       attribute_code
       count
@@ -70,6 +73,17 @@ class ProductApi {
           }
         }
       }
+      price_tiers {
+          discount {
+            amount_off
+            percent_off
+          }
+          final_price {
+            value
+            currency
+          }
+          quantity
+        }
       categories {
         uid
         name
@@ -105,7 +119,7 @@ class ProductApi {
             ... on PhysicalProductInterface {
               weight
             }
-
+            
             price_range {
               minimum_price {
                 regular_price {
@@ -185,6 +199,17 @@ class ProductApi {
             }
           }
         }
+        price_tiers {
+        discount {
+          amount_off
+          percent_off
+        }
+        final_price {
+          value
+          currency
+        }
+        quantity
+      }
         ... on ConfigurableProduct {
           configurable_options {
             id
@@ -441,4 +466,18 @@ mutation addWishlistItemsToCart($wishlistId: ID!,$wishlistItemsIds: [ID!]!){
     }
   }
   }''';
+
+  static String mostViewedProducts = r'''
+    query mostViewedProducts($pageSize: Int!, $currentPage: Int!) {
+      mostViewedProducts(search: "", pageSize: $pageSize, currentPage: $currentPage) {
+        currentPage
+        items {
+          sku
+        }
+        pageSize
+        totalPages
+        totalCount
+      }
+    }
+  ''';
 }

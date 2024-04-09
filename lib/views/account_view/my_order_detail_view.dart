@@ -1,5 +1,5 @@
-
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart%20';
 import 'package:go_router/go_router.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:m2/services/app_responsive.dart';
@@ -29,11 +29,14 @@ class _MyOrderDetailViewState extends State<MyOrderDetailView> {
     return BuildScaffold(
       child: LayoutBuilder(builder: (context, constraints) {
         return Query(
-            options: QueryOptions(document: gql(orderDetails), fetchPolicy: FetchPolicy.noCache, variables: {
-              'filter': {
-                "number": {"eq": widget.orderId}
-              }
-            }),
+            options: QueryOptions(
+                document: gql(orderDetails),
+                fetchPolicy: FetchPolicy.noCache,
+                variables: {
+                  'filter': {
+                    "number": {"eq": widget.orderId}
+                  }
+                }),
             builder: (result, {fetchMore, refetch}) {
               if (result.isLoading) {
                 return BuildLoadingWidget(color: AppColors.primaryColor);
@@ -47,7 +50,11 @@ class _MyOrderDetailViewState extends State<MyOrderDetailView> {
                 );
               }
               return SingleChildScrollView(
-                padding: EdgeInsets.symmetric(horizontal: constraints.maxWidth > 1400 ? (constraints.maxWidth - 1400) / 2 : 20, vertical: 20),
+                padding: EdgeInsets.symmetric(
+                    horizontal: constraints.maxWidth > 1400
+                        ? (constraints.maxWidth - 1400) / 2
+                        : 20,
+                    vertical: 20),
                 child: AppResponsive(
                   mobile: _getMobileView(size, result.data!),
                   desktop: Row(
@@ -75,13 +82,21 @@ class _MyOrderDetailViewState extends State<MyOrderDetailView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('My orders', style: AppStyles.getMediumTextStyle(fontSize: 18, color: AppColors.primaryColor)),
+          InkWell(
+              onTap: () => print(data['customer']['orders']['items'][0]['items']
+                  [0]['product_name']),
+              child: Text('My Orders',
+                  style: AppStyles.getMediumTextStyle(
+                      fontSize: 18, color: AppColors.primaryColor))),
           const SizedBox(height: 10),
-          Text('Order No: ${widget.orderId}', style: AppStyles.getMediumTextStyle(fontSize: 18, color: AppColors.evenFadedText)),
+          Text('Order No: ${widget.orderId}',
+              style: AppStyles.getMediumTextStyle(
+                  fontSize: 18, color: AppColors.evenFadedText)),
           const SizedBox(height: 20),
           ListView.separated(
             itemCount: data['customer']['orders']['items'][0]['items'].length,
             shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
             separatorBuilder: (ctx, index) => !AppResponsive.isDesktop(context)
                 ? const SizedBox(height: 40)
                 : Column(
@@ -140,13 +155,19 @@ class _MyOrderDetailViewState extends State<MyOrderDetailView> {
 }
 
 class BuildOrderDetailContainer extends StatefulWidget {
-  const BuildOrderDetailContainer({super.key, required this.size, required this.orderId, this.isReturn = false, required this.data});
+  const BuildOrderDetailContainer(
+      {super.key,
+      required this.size,
+      required this.orderId,
+      this.isReturn = false,
+      required this.data});
   final Size size;
   final String orderId;
   final bool isReturn;
   final Map data;
   @override
-  State<BuildOrderDetailContainer> createState() => _BuildOrderDetailContainerState();
+  State<BuildOrderDetailContainer> createState() =>
+      _BuildOrderDetailContainerState();
 }
 
 class _BuildOrderDetailContainerState extends State<BuildOrderDetailContainer> {
@@ -224,19 +245,22 @@ class _BuildOrderDetailContainerState extends State<BuildOrderDetailContainer> {
             children: [
               Text(
                 widget.data['product_name'],
-                style: AppStyles.getMediumTextStyle(fontSize: 18, color: AppColors.fontColor),
+                style: AppStyles.getMediumTextStyle(
+                    fontSize: 18, color: AppColors.fontColor),
               ),
               const SizedBox(height: 5),
               Text(
                 'Order details',
-                style: AppStyles.getMediumTextStyle(fontSize: 12, color: AppColors.primaryColor),
+                style: AppStyles.getMediumTextStyle(
+                    fontSize: 12, color: AppColors.primaryColor),
               ),
               const SizedBox(height: 5),
               Container(height: 1, color: AppColors.buttonColor),
               const SizedBox(height: 5),
               Text(
                 'Order status : ${widget.data['status']}',
-                style: AppStyles.getRegularTextStyle(fontSize: 12, color: AppColors.fadedText),
+                style: AppStyles.getRegularTextStyle(
+                    fontSize: 12, color: AppColors.fadedText),
               ),
               const SizedBox(height: 5),
               // Text(
@@ -254,7 +278,8 @@ class _BuildOrderDetailContainerState extends State<BuildOrderDetailContainer> {
     return TextButton(
       style: TextButton.styleFrom(padding: EdgeInsets.zero),
       onPressed: () {},
-      child: Text('Returns', style: AppStyles.getMediumTextStyle(fontSize: 17, color: Colors.red)),
+      child: Text('Returns',
+          style: AppStyles.getMediumTextStyle(fontSize: 17, color: Colors.red)),
     );
   }
 
@@ -262,7 +287,9 @@ class _BuildOrderDetailContainerState extends State<BuildOrderDetailContainer> {
     return TextButton(
       style: TextButton.styleFrom(padding: EdgeInsets.zero),
       onPressed: () {},
-      child: Text('Cancel Order', style: AppStyles.getMediumTextStyle(fontSize: 17, color: AppColors.fadedText)),
+      child: Text('Cancel Order',
+          style: AppStyles.getMediumTextStyle(
+              fontSize: 17, color: AppColors.fadedText)),
     );
   }
 
@@ -270,7 +297,9 @@ class _BuildOrderDetailContainerState extends State<BuildOrderDetailContainer> {
     return TextButton(
       style: TextButton.styleFrom(padding: EdgeInsets.zero),
       onPressed: () {},
-      child: Text('Track Order', style: AppStyles.getMediumTextStyle(fontSize: 17, color: AppColors.buttonColor)),
+      child: Text('Track Order',
+          style: AppStyles.getMediumTextStyle(
+              fontSize: 17, color: AppColors.buttonColor)),
     );
   }
 
@@ -289,13 +318,19 @@ class _BuildOrderDetailContainerState extends State<BuildOrderDetailContainer> {
     return Text.rich(
       TextSpan(
         text: "Total Price: ",
-        style: AppStyles.getMediumTextStyle(fontSize: 18, color: AppColors.fontColor),
+        style: AppStyles.getMediumTextStyle(
+            fontSize: 18, color: AppColors.fontColor),
         children: [
           TextSpan(
             text: currency,
-            style: TextStyle(fontWeight: FontWeight.w500, color: AppColors.fontColor),
+            style: TextStyle(
+                fontWeight: FontWeight.w500, color: AppColors.fontColor),
           ),
-          TextSpan(text: widget.data['product_sale_price']['value'].toStringAsFixed(2), style: AppStyles.getMediumTextStyle(fontSize: 18, color: AppColors.fontColor)),
+          TextSpan(
+              text:
+                  widget.data['product_sale_price']['value'].toStringAsFixed(2),
+              style: AppStyles.getMediumTextStyle(
+                  fontSize: 18, color: AppColors.fontColor)),
         ],
       ),
     );

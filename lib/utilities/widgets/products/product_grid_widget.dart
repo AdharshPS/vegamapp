@@ -4,7 +4,13 @@ import 'package:m2/utilities/utilities.dart';
 import 'package:m2/utilities/widgets/two_colored_title.dart';
 
 class ProductGridWidget extends StatefulWidget {
-  const ProductGridWidget({super.key, this.title, this.id, required this.children, this.gridSize, this.aspectRatio});
+  const ProductGridWidget(
+      {super.key,
+      this.title,
+      this.id,
+      required this.children,
+      this.gridSize,
+      this.aspectRatio});
   final String? title;
   final String? id;
   final List<Widget> children;
@@ -19,10 +25,18 @@ class _ProductGridWidgetState extends State<ProductGridWidget> {
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
       return Padding(
-        padding: EdgeInsets.symmetric(horizontal: constraints.maxWidth > 1400 ? (constraints.maxWidth - 1400) / 2 : 20, vertical: 20),
+        padding: EdgeInsets.symmetric(
+            horizontal: constraints.maxWidth > 1400
+                ? (constraints.maxWidth - 1400) / 2
+                : 20,
+            vertical: 20),
         child: Column(
           children: [
-            if (widget.title != null) TwoColoredTitle(title: widget.title!, firstHeadColor: AppColors.primaryColor, secondHeadColor: AppColors.fadedText),
+            if (widget.title != null)
+              TwoColoredTitle(
+                  title: widget.title!,
+                  firstHeadColor: AppColors.primaryColor,
+                  secondHeadColor: AppColors.fadedText),
             if (widget.title != null) const SizedBox(height: 10),
             GridView.builder(
               // padding: const EdgeInsets.all(20),
@@ -39,7 +53,9 @@ class _ProductGridWidgetState extends State<ProductGridWidget> {
               itemBuilder: (context, index) {
                 return Container(
                   // padding: const EdgeInsets.symmetric(vertical: 10),
-                  width: AppResponsive.isMobile(context) ? constraints.maxWidth * 0.4 : 240,
+                  width: AppResponsive.isMobile(context)
+                      ? constraints.maxWidth * 0.4
+                      : 240,
                   constraints: const BoxConstraints(maxWidth: 280),
                   child: widget.children[index],
                 );

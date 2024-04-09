@@ -1,15 +1,26 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static Color kPrimaryColor = const Color(0xff0E887C); //Primary color of the app
+  // static Color kPrimaryColor = Color(0xFF0E887C); //Primary color of the app
+  static Color kPrimaryColor = Color(0xFF0CC94E); //Primary color of the app
 
+// Color(0xFF16D80F)
+  // static LinearGradient gradient = const LinearGradient(
+  //     colors: [Color(0xff31ACA0), Color(0xff187B71)],
+  //     begin: Alignment.topCenter,
+  //     end: Alignment.bottomCenter); // A common gradient throughout the app
   static LinearGradient gradient = const LinearGradient(
-      colors: [Color(0xff31ACA0), Color(0xff187B71)],
+      colors: [
+        Color(0xFFFFFFFF),
+        Color.fromRGBO(12, 201, 78, 1),
+        Color.fromRGBO(12, 201, 78, .9),
+      ],
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter); // A common gradient throughout the app
 
   static Color fadedText = const Color(0xff707070); // Faded text color
-  static Color evenFadedText = const Color(0xffc5c5c5); // Even faded text color.
+  static Color evenFadedText =
+      const Color(0xffc5c5c5); // Even faded text color.
   static Color lessFadedText = const Color(0xff4A4A4A);
   static Color fontColor = Colors.black; // Font color (usually black)
 
@@ -23,7 +34,10 @@ class AppColors {
 
   static Color scaffoldColor = Colors.white; // Main background color
 
-  static Color buttonColor = const Color(0xff31aca0); // Color of buttons throughout the app
+  // static Color buttonColor =
+  //     const Color(0xff31aca0); // Color of buttons throughout the app
+  static Color buttonColor =
+      Color.fromARGB(255, 12, 201, 78); // Color of buttons throughout the app
   static Color buttonTextColor = Colors.white;
 
   static Color facebookBlue = const Color(0xff4267B2);
@@ -41,16 +55,17 @@ class AppColors {
   static Color snackbarErrorTextColor = Colors.white;
 
   static Map<int, Color> color = const {
-    50: Color.fromRGBO(14, 136, 124, 0.1),
-    100: Color.fromRGBO(14, 136, 124, 0.2),
-    200: Color.fromRGBO(14, 136, 124, 0.3),
-    300: Color.fromRGBO(14, 136, 124, 0.4),
-    400: Color.fromRGBO(14, 136, 124, 0.5),
-    500: Color.fromRGBO(14, 136, 124, 0.6),
-    600: Color.fromRGBO(14, 136, 124, 0.7),
-    700: Color.fromRGBO(14, 136, 124, 0.8),
-    800: Color.fromRGBO(14, 136, 124, 0.9),
-    900: Color.fromRGBO(14, 136, 124, 1),
+    50: Color.fromRGBO(22, 216, 15, 0.1),
+    100: Color.fromRGBO(22, 216, 15, 0.2),
+    200: Color.fromRGBO(22, 216, 15, 0.3),
+    300: Color.fromRGBO(22, 216, 15, 0.4),
+    400: Color.fromRGBO(22, 216, 15, 0.5),
+    500: Color.fromRGBO(22, 216, 15, 0.6),
+    600: Color.fromRGBO(22, 216, 15, 0.7),
+    700: Color.fromRGBO(22, 216, 15, 0.8),
+    800: Color.fromRGBO(22, 216, 15, 0.9),
+    900: Color.fromRGBO(22, 216, 15, 1),
   };
-  static MaterialColor primaryColor = MaterialColor(0xff0E887C, color); // Material color version of primary color for integrating to flutter
+  static MaterialColor primaryColor = MaterialColor(0xFF0CC94E,
+      color); // Material color version of primary color for integrating to flutter
 }

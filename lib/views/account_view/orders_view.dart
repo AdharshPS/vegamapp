@@ -27,6 +27,18 @@ class _OrdersViewState extends State<OrdersView> {
 
   FetchMoreOptions? opts;
 
+  // late AuthToken authToken;
+  // late CategoriesData categoriesData;
+
+  // @override
+  // void initState() {
+  //   WidgetsFlutterBinding.ensureInitialized().addPostFrameCallback((_) {
+  //     categoriesData.getCategoryData(context);
+  //     authToken.getUser(context, GraphQLProvider.of(context));
+  //   });
+  //   super.initState();
+  // }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -36,7 +48,7 @@ class _OrdersViewState extends State<OrdersView> {
         return SingleChildScrollView(
           padding: EdgeInsets.symmetric(
               horizontal: AppResponsive.isMobile(context)
-                  ? 20
+                  ? 10
                   : constraints.maxWidth > 1400
                       ? (constraints.maxWidth - 1400) / 2
                       : 60,
@@ -58,7 +70,12 @@ class _OrdersViewState extends State<OrdersView> {
                       margin: const EdgeInsets.only(top: 40),
                       decoration: BoxDecoration(
                         color: AppColors.scaffoldColor,
-                        boxShadow: [BoxShadow(color: AppColors.shadowColor, blurRadius: 50, offset: const Offset(0, 10))],
+                        boxShadow: [
+                          BoxShadow(
+                              color: AppColors.shadowColor,
+                              blurRadius: 50,
+                              offset: const Offset(0, 10))
+                        ],
                       ),
                       child: getBody(context, size)),
                 ),
@@ -74,14 +91,18 @@ class _OrdersViewState extends State<OrdersView> {
   Padding getBody(BuildContext context, Size size) {
     var userData = Provider.of<UserData>(context);
     return Padding(
-      padding: AppResponsive.isDesktop(context) ? const EdgeInsets.symmetric(horizontal: 60, vertical: 50) : EdgeInsets.symmetric(horizontal: size.width * 0.05),
+      padding: AppResponsive.isDesktop(context)
+          ? const EdgeInsets.symmetric(horizontal: 60, vertical: 50)
+          : EdgeInsets.symmetric(horizontal: size.width * 0.05),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.max,
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 20),
-            child: Text('My Orders', style: AppStyles.getMediumTextStyle(fontSize: 18, color: AppColors.primaryColor)),
+            child: Text('My Orders',
+                style: AppStyles.getMediumTextStyle(
+                    fontSize: 18, color: AppColors.primaryColor)),
           ),
           const SizedBox(height: 30),
           getTableQuery(size),
@@ -93,10 +114,16 @@ class _OrdersViewState extends State<OrdersView> {
   getTableQuery(Size size) {
     // generate table
     return Query(
-        options: QueryOptions(document: gql(CustomerApis.orderDetails), variables: {'page': page}, fetchPolicy: FetchPolicy.noCache),
-        builder: (QueryResult result, {VoidCallback? refetch, FetchMore? fetchMore}) {
+        options: QueryOptions(
+          document: gql(CustomerApis.orderDetails),
+          fetchPolicy: FetchPolicy.noCache,
+          variables: {'page': page},
+        ),
+        builder: (QueryResult result,
+            {VoidCallback? refetch, FetchMore? fetchMore}) {
           if (result.isLoading && result.data == null) {
-            return Center(child: BuildLoadingWidget(color: AppColors.primaryColor));
+            return Center(
+                child: BuildLoadingWidget(color: AppColors.primaryColor));
           }
           if (result.data == null) {
             return BuildErrorWidget(onRefresh: refetch);
@@ -112,7 +139,10 @@ class _OrdersViewState extends State<OrdersView> {
           if (result.data!['customer']['orders']['items'].isEmpty) {
             return SizedBox(
               height: 200,
-              child: Center(child: Text("No orders yet", style: AppStyles.getMediumTextStyle(fontSize: 15, color: AppColors.primaryColor))),
+              child: Center(
+                  child: Text("No orders yet",
+                      style: AppStyles.getMediumTextStyle(
+                          fontSize: 15, color: AppColors.primaryColor))),
             );
           }
           // if (opts == null)
@@ -124,8 +154,10 @@ class _OrdersViewState extends State<OrdersView> {
               // //print('fetchMoreResultData $fetchMoreResultData');
 
               final List<dynamic> repos = [
-                ...previousResultData!['customer']['orders']['items'] as List<dynamic>,
-                ...fetchMoreResultData!['customer']['orders']['items'] as List<dynamic>
+                ...previousResultData!['customer']['orders']['items']
+                    as List<dynamic>,
+                ...fetchMoreResultData!['customer']['orders']['items']
+                    as List<dynamic>
               ];
 
               // to avoid a lot of work, lets just update the list of repos in returned
@@ -138,50 +170,80 @@ class _OrdersViewState extends State<OrdersView> {
           ); // List<Orders> products = List.generate(
           //     result.data!['customerOrders']['items']!.length, (index) => Orders.fromJson(result.data!['customerOrders']['items'][index]));
           // List<Orders> products = List.generate(data.length, (index) => Orders.fromJson(data[index]));
-          return Column(
-            children: [
-              BuildTableWidget(
-                size: size,
-                headers: headers,
-                id: List.generate(result.data!['customer']['orders']['items'].length, (index) => result.data!['customer']['orders']['items'][index]['number'].toString()),
-                cells: List<Map<String, dynamic>>.generate(
-                    result.data!['customer']['orders']['items'].length,
-                    (index) => {
-                          'data': result.data!['customer']['orders']['items'][index],
-                          'list': [
-                            result.data!['customer']['orders']['items'][index]['number'],
-                            dateFormat.format(DateTime.parse(result.data!['customer']['orders']['items'][index]['order_date'])),
-                            double.parse(result.data!['customer']['orders']['items'][index]['total']['grand_total']['value'].toString()).toStringAsFixed(2),
-                            result.data!['customer']['orders']['items'][index]['status'],
-                            'View Order'
-                          ],
-                        }),
-                onTap: 'MyOrderDetailView',
-              ),
-              const SizedBox(height: 10),
-              if (totalPage >= page)
-                Center(
-                  child: TextButton(
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 30),
-                      shape: const StadiumBorder(),
-                      backgroundColor: AppColors.primaryColor,
-                      shadowColor: AppColors.shadowColor,
-                    ),
-                    onPressed: () {
-                      // //print(opts);
-                      ++page;
-                      fetchMore!(opts!);
-                    },
-                    child: result.isLoading
-                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white))
-                        : Text(
-                            'Load More',
-                            style: AppStyles.getMediumTextStyle(fontSize: 14, color: Colors.white),
-                          ),
-                  ),
+          return Container(
+            padding: EdgeInsets.all(10),
+            decoration: BoxDecoration(
+                // border: Border.all(color: AppColors.primaryColor, width: 0.5),
+                color: AppColors.containerColor,
+                borderRadius: BorderRadius.circular(10)),
+            child: Column(
+              children: [
+                BuildTableWidget(
+                  size: size,
+                  headers: headers,
+                  id: List.generate(
+                      result.data!['customer']['orders']['items'].length,
+                      (index) => result.data!['customer']['orders']['items']
+                              [index]['number']
+                          .toString()),
+                  cells: List<Map<String, dynamic>>.generate(
+                      result.data!['customer']['orders']['items'].length,
+                      (index) => {
+                            'data': result.data!['customer']['orders']['items']
+                                [index],
+                            'list': [
+                              result.data!['customer']['orders']['items'][index]
+                                  ['number'],
+                              dateFormat.format(DateTime.parse(
+                                  result.data!['customer']['orders']['items']
+                                      [index]['order_date'])),
+                              double.parse(result.data!['customer']['orders']
+                                          ['items'][index]['total']
+                                          ['grand_total']['value']
+                                      .toString())
+                                  .toStringAsFixed(2),
+                              // double.parse(result.data!['customer']['orders']
+                              //         ['items'][index]['total']['grand_total']
+                              //         ['currency']
+                              //     .toString()),
+                              result.data!['customer']['orders']['items'][index]
+                                  ['status'],
+                              'View Items',
+                            ],
+                          }),
+                  onTap: 'MyOrderDetailView',
                 ),
-            ],
+                const SizedBox(height: 10),
+                if (totalPage >= page)
+                  Center(
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10, horizontal: 30),
+                        shape: const StadiumBorder(),
+                        backgroundColor: AppColors.primaryColor,
+                        shadowColor: AppColors.shadowColor,
+                      ),
+                      onPressed: () {
+                        // //print(opts);
+                        ++page;
+                        fetchMore!(opts!);
+                      },
+                      child: result.isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                  color: Colors.white))
+                          : Text(
+                              'Load More',
+                              style: AppStyles.getMediumTextStyle(
+                                  fontSize: 14, color: Colors.white),
+                            ),
+                    ),
+                  ),
+              ],
+            ),
           );
         });
   }

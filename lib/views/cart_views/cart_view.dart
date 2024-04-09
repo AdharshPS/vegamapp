@@ -1,28 +1,86 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart%20';
+import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:m2/services/api_services/api_services.dart';
 import 'package:m2/services/api_services/cart_apis.dart';
+import 'package:m2/services/api_services/customer_apis.dart';
+import 'package:m2/services/api_services/product_apis.dart';
 import 'package:m2/services/app_responsive.dart';
+import 'package:m2/services/models/product_model.dart';
 import 'package:m2/services/search_services.dart';
 import 'package:m2/services/state_management/cart/cart_data.dart';
+import 'package:m2/services/state_management/home/home_data.dart';
 import 'package:m2/services/state_management/token/token.dart';
 import 'package:m2/utilities/utilities.dart';
+import 'package:m2/utilities/widgets/cart_price_added.dart';
 import 'package:m2/utilities/widgets/widgets.dart';
 import 'package:m2/views/auth/auth.dart';
 import 'package:m2/views/cart_views/cart_addresss_view.dart';
+import 'package:m2/views/home/home_view.dart';
 import 'package:provider/provider.dart';
 
 class CartView extends StatefulWidget {
-  const CartView({super.key});
+  const CartView({
+    super.key,
+  });
   static String route = 'cart';
+
   @override
   State<CartView> createState() => _CartViewState();
 }
 
 class _CartViewState extends State<CartView> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  String orderDetails = r'''
+  query Orders($filter:CustomerOrdersFilterInput!){
+    customer {
+      orders(filter:$filter,currentPage: 1, pageSize:10){
+        items {
+          number
+          id
+          order_date
+          status
+          total{
+            grand_total{
+              value
+            }
+          }
+          items{
+            product_name
+            status
+            product_sku
+            product_url_key
+            quantity_ordered
+            product_sale_price{
+                value
+            }
+          }
+          status
+        }
+        page_info {
+          current_page
+          page_size
+          total_pages
+        }
+      }
+    }
+  }
+  ''';
+
+  int page = 1;
+  int totalPage = 1;
+  FetchMoreOptions? opts;
+
   // To show numbers in a formated view
   var f = NumberFormat("#,##,##,##0.00", "en_IN");
 
@@ -40,11 +98,6 @@ class _CartViewState extends State<CartView> {
     cartData.getCartData(context, token);
     // print(cartData.cartId);
     // print(token.loginToken);
-  }
-
-  @override
-  void initState() {
-    super.initState();
   }
 
   // Refetch cart or get a new cart on cart exception
@@ -74,7 +127,8 @@ class _CartViewState extends State<CartView> {
       currentIndex: 2,
       child: LayoutBuilder(builder: (context, constraints) {
         return Query(
-            options: QueryOptions(document: CartApis.cart, variables: {'id': cartData.cartId}),
+            options: QueryOptions(
+                document: CartApis.cart, variables: {'id': cartData.cartId}),
             builder: (result, {fetchMore, refetch}) {
               if (result.isLoading) {
                 return const BuildLoadingWidget();
@@ -87,7 +141,9 @@ class _CartViewState extends State<CartView> {
                       await cartData.getCartData(context, token);
                       refetch!();
                     },
-                    errorMsg: result.exception!.graphqlErrors.isNotEmpty ? result.exception?.graphqlErrors[0].message : "An error occured",
+                    errorMsg: result.exception!.graphqlErrors.isNotEmpty
+                        ? result.exception?.graphqlErrors[0].message
+                        : "An error occured",
                   ),
                 );
                 // functionOnException(refetch);
@@ -100,7 +156,11 @@ class _CartViewState extends State<CartView> {
               cartData.putCartCount(result.data!['cart']['total_quantity']);
               return ListView(
                 controller: scrollController,
-                padding: EdgeInsets.symmetric(horizontal: constraints.maxWidth > 1400 ? (constraints.maxWidth - 1400) / 2 : 20, vertical: 20),
+                padding: EdgeInsets.symmetric(
+                    horizontal: constraints.maxWidth > 1400
+                        ? (constraints.maxWidth - 1400) / 2
+                        : 20,
+                    vertical: 20),
                 children: [
                   const SizedBox(height: 20),
                   // Align(
@@ -119,7 +179,118 @@ class _CartViewState extends State<CartView> {
                   // ),
                   // const SizedBox(height: 20),
                   result.data!['cart']['total_quantity'] == 0
-                      ? SizedBox(height: 200, child: Center(child: Text("Cart Empty", style: AppStyles.getMediumTextStyle(fontSize: 18))))
+                      ? SingleChildScrollView(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  SizedBox(
+                                      height: 200,
+                                      child: Center(
+                                          child: Text("Cart Empty",
+                                              style:
+                                                  AppStyles.getMediumTextStyle(
+                                                      fontSize: 18)))),
+                                  Center(
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        context.push(HomeView.route);
+                                      },
+                                      style: AppStyles.filledButtonStyle,
+                                      child: Text("Shop now"),
+                                    ),
+                                  ), // button to go to the homepage
+                                  const SizedBox(height: 50)
+                                ],
+                              ),
+                              Query(
+                                  options: QueryOptions(
+                                    document: gql(CustomerApis.orderDetails),
+                                    fetchPolicy: FetchPolicy.noCache,
+                                    variables: {'page': page},
+                                    // variables: {
+                                    //   'filter': {
+                                    //     "number": {"eq": widget.orderId}
+                                    //   }
+                                    // }
+                                  ),
+                                  builder: (result2, {fetchMore, refetch}) {
+                                    if (result2.isLoading) {
+                                      return BuildLoadingWidget(
+                                          color: AppColors.primaryColor);
+                                    }
+                                    if (result2.hasException) {
+                                      return Center(
+                                        child: BuildErrorWidget(
+                                          errorMsg: result2.exception
+                                              ?.graphqlErrors[0].message,
+                                          onRefresh: refetch,
+                                        ),
+                                      );
+                                    }
+                                    // try {
+                                    //   var pageInfo = result.data!['customer']
+                                    //       ['orders']['page_info'];
+
+                                    //   page = pageInfo['current_page'];
+                                    //   totalPage = pageInfo['total_pages'];
+                                    // } catch (e) {}
+                                    // opts = FetchMoreOptions(
+                                    //   document: gql(CustomerApis.orderDetails),
+                                    //   variables: {'page': ++page},
+                                    //   updateQuery: (previousResultData,
+                                    //       fetchMoreResultData) {
+                                    //     //print('currentReviewPage $page');
+                                    //     // //print('fetchMoreResultData $fetchMoreResultData');
+
+                                    //     final List<dynamic> repos = [
+                                    //       ...previousResultData!['customer']
+                                    //               ['orders']['items']
+                                    //           as List<dynamic>,
+                                    //       ...fetchMoreResultData!['customer']
+                                    //           ['orders']['items'] as List<dynamic>
+                                    //     ];
+
+                                    //     // to avoid a lot of work, lets just update the list of repos in returned
+                                    //     // data with new data, this also ensures we have the endCursor already set
+                                    //     // correctly
+                                    //     fetchMoreResultData['customer']['orders']
+                                    //         ['items'] = repos;
+
+                                    //     return fetchMoreResultData;
+                                    //   },
+                                    // );
+                                    if (result2
+                                        .data!['customer']['orders']['items']
+                                        .isEmpty) {
+                                      return SizedBox(
+                                        height: 200,
+                                        child: Center(
+                                            child: Text("No orders yet",
+                                                style: AppStyles
+                                                    .getMediumTextStyle(
+                                                        fontSize: 15,
+                                                        color: AppColors
+                                                            .primaryColor))),
+                                      );
+                                    } else {
+                                      var homeData =
+                                          Provider.of<HomeData>(context);
+                                      // print(
+                                      //     "homedata:  ${homeData.data['homepage']!['blocks']!['data']}");
+                                      return GetHistory(
+                                        data: result2.data!,
+                                        homeData: homeData.data,
+                                      );
+                                    }
+                                  })
+                            ],
+                          ),
+                        )
                       : AppResponsive(
                           mobile: Column(
                             children: [
@@ -136,11 +307,18 @@ class _CartViewState extends State<CartView> {
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Expanded(flex: 75, child: getBody(size, cartData, result, refetch)),
+                                Expanded(
+                                    flex: 75,
+                                    child: getBody(
+                                        size, cartData, result, refetch)),
                                 const SizedBox(width: 20),
                                 ConstrainedBox(
-                                  constraints: const BoxConstraints(maxWidth: 350),
-                                  child: CartSummaryWidget(refetch: refetch, buttonText: "Next", onButtonTap: _showSignInDialog),
+                                  constraints:
+                                      const BoxConstraints(maxWidth: 350),
+                                  child: CartSummaryWidget(
+                                      refetch: refetch,
+                                      buttonText: "Next",
+                                      onButtonTap: _showSignInDialog),
                                 )
                               ],
                             ),
@@ -176,7 +354,7 @@ class _CartViewState extends State<CartView> {
                 shrinkWrap: true,
                 children: [
                   const SizedBox(height: 20),
-                  Center(child: Image.asset(logoUrl, width: 200)),
+                  // Center(child: Image.asset(logoUrl, width: 200)),
                   const SizedBox(height: 40),
                   TextButton(
                     style: AppStyles.filledButtonStyle,
@@ -209,7 +387,8 @@ class _CartViewState extends State<CartView> {
                           ),
                         ),
                         onPressed: () => Navigator.pop(context),
-                        child: const Icon(FontAwesomeIcons.xmark, color: Colors.white)),
+                        child: const Icon(FontAwesomeIcons.xmark,
+                            color: Colors.white)),
                   ),
                 ],
               ),
@@ -218,11 +397,15 @@ class _CartViewState extends State<CartView> {
         });
   }
 
-  Widget getBody(Size size, CartData cartData, QueryResult result, Future<QueryResult<Object?>?> Function()? refetch) {
-    return AppResponsive(mobile: getMainMobileCart(size, cartData, result, refetch), desktop: getDesktopCartContainer(cartData, result, refetch));
+  Widget getBody(Size size, CartData cartData, QueryResult result,
+      Future<QueryResult<Object?>?> Function()? refetch) {
+    return AppResponsive(
+        mobile: getMainMobileCart(size, cartData, result, refetch),
+        desktop: getDesktopCartContainer(cartData, result, refetch));
   }
 
-  Container getDesktopCartContainer(CartData cartData, QueryResult result, Future<QueryResult<Object?>?> Function()? refetch) {
+  Container getDesktopCartContainer(CartData cartData, QueryResult result,
+      Future<QueryResult<Object?>?> Function()? refetch) {
     return Container(
       constraints: const BoxConstraints(minHeight: 100),
       decoration: BoxDecoration(
@@ -240,28 +423,36 @@ class _CartViewState extends State<CartView> {
                   flex: 4,
                   child: Container(
                     alignment: Alignment.centerLeft,
-                    child: Text('Item', style: AppStyles.getMediumTextStyle(fontSize: 18, color: AppColors.fontColor)),
+                    child: Text('Item',
+                        style: AppStyles.getMediumTextStyle(
+                            fontSize: 18, color: AppColors.fontColor)),
                   ),
                 ),
                 Expanded(
                   flex: 2,
                   child: Container(
                     alignment: Alignment.centerLeft,
-                    child: Text('Price', style: AppStyles.getMediumTextStyle(fontSize: 18, color: AppColors.fontColor)),
+                    child: Text('Price',
+                        style: AppStyles.getMediumTextStyle(
+                            fontSize: 18, color: AppColors.fontColor)),
                   ),
                 ),
                 Expanded(
                   flex: 2,
                   child: Container(
                     alignment: Alignment.centerLeft,
-                    child: Text('Qty', style: AppStyles.getMediumTextStyle(fontSize: 18, color: AppColors.fontColor)),
+                    child: Text('Qty',
+                        style: AppStyles.getMediumTextStyle(
+                            fontSize: 18, color: AppColors.fontColor)),
                   ),
                 ),
                 Expanded(
                   flex: 2,
                   child: Container(
                     alignment: Alignment.centerLeft,
-                    child: Text('Subtotal', style: AppStyles.getMediumTextStyle(fontSize: 18, color: AppColors.fontColor)),
+                    child: Text('Subtotal',
+                        style: AppStyles.getMediumTextStyle(
+                            fontSize: 18, color: AppColors.fontColor)),
                   ),
                 ),
                 const Expanded(flex: 1, child: SizedBox()),
@@ -276,7 +467,8 @@ class _CartViewState extends State<CartView> {
               (index) {
                 var item = result.data!['cart']['items'][index];
                 return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
                   margin: const EdgeInsets.symmetric(vertical: 10),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -289,19 +481,27 @@ class _CartViewState extends State<CartView> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 20, horizontal: 20),
                                   width: 100,
                                   height: 125,
                                   decoration: BoxDecoration(
-                                    border: Border.all(width: 1, color: AppColors.evenFadedText),
+                                    border: Border.all(
+                                        width: 1,
+                                        color: AppColors.evenFadedText),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Center(
-                                    child: CachedNetworkImage(imageUrl: item['product']['image']['url']),
+                                    child: CachedNetworkImage(
+                                        imageUrl: item['product']['image']
+                                            ['url']),
                                   ),
                                 ),
                                 const SizedBox(height: 15),
-                                Text(item['product']['name'], style: AppStyles.getMediumTextStyle(fontSize: 15, color: AppColors.fontColor)),
+                                Text(item['product']['name'],
+                                    style: AppStyles.getMediumTextStyle(
+                                        fontSize: 15,
+                                        color: AppColors.fontColor)),
                               ],
                             ),
                           )),
@@ -309,10 +509,13 @@ class _CartViewState extends State<CartView> {
                         flex: 2,
                         child: Container(
                           alignment: Alignment.centerLeft,
-                          child: BuildPriceWithOffer(
-                            price: f.format(item['product']['price_range']['minimum_price']['regular_price']['value']),
+                          child: CartPriceAddedDetails(
+                            price: f.format(item['product']['price_range']
+                                ['minimum_price']['regular_price']['value']),
                             priceSize: 17,
-                            currency: item['product']['price_range']['minimum_price']['regular_price']['currency'],
+                            currency: item['product']['price_range']
+                                ['minimum_price']['regular_price']['currency'],
+                            item: item,
                           ),
                         ),
                       ),
@@ -321,18 +524,29 @@ class _CartViewState extends State<CartView> {
                         child: Container(
                           height: 50,
                           alignment: Alignment.topLeft,
-                          child:
-                              getItemNoChanger(size: const Size(500, 50), item: item, mainAxisAlignment: MainAxisAlignment.start, height: 30, cartData: cartData, refetch: refetch),
+                          child: getItemNoChanger(
+                              size: const Size(500, 50),
+                              item: item,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              height: 30,
+                              cartData: cartData,
+                              refetch: refetch),
                         ),
                       ),
                       Expanded(
                         flex: 2,
                         child: Container(
                           alignment: Alignment.centerLeft,
-                          child: BuildPriceWithOffer(
-                            price: (f.format(item['product']['price_range']['minimum_price']['regular_price']['value'] * item['quantity'])).toString(),
+                          child: CartPriceAddedDetails(
+                            price: (f.format(item['product']['price_range']
+                                            ['minimum_price']['regular_price']
+                                        ['value'] *
+                                    item['quantity']))
+                                .toString(),
                             priceSize: 17,
-                            currency: item['product']['price_range']['minimum_price']['regular_price']['currency'],
+                            currency: item['product']['price_range']
+                                ['minimum_price']['regular_price']['currency'],
+                            item: item,
                           ),
                         ),
                       ),
@@ -347,16 +561,22 @@ class _CartViewState extends State<CartView> {
                                   showSnackBar(
                                       context: context,
                                       message: "Removed item from cart",
-                                      backgroundColor: AppColors.snackbarSuccessBackgroundColor,
-                                      textColor: AppColors.snackbarSuccessTextColor);
-                                  await cartData.getCartData(context, Provider.of<AuthToken>(context, listen: false));
+                                      backgroundColor: AppColors
+                                          .snackbarSuccessBackgroundColor,
+                                      textColor:
+                                          AppColors.snackbarSuccessTextColor);
+                                  await cartData.getCartData(
+                                      context,
+                                      Provider.of<AuthToken>(context,
+                                          listen: false));
                                   refetch!();
                                 },
                                 onError: (error) {
                                   showSnackBar(
                                     context: context,
                                     message: error!.graphqlErrors[0].message,
-                                    backgroundColor: AppColors.snackbarErrorBackgroundColor,
+                                    backgroundColor:
+                                        AppColors.snackbarErrorBackgroundColor,
                                     textColor: AppColors.snackbarErrorTextColor,
                                   );
 
@@ -369,35 +589,47 @@ class _CartViewState extends State<CartView> {
                                     showDialog(
                                       context: context,
                                       builder: (context) => AlertDialog(
-                                        title: Text("Delete?", style: AppStyles.getMediumTextStyle(fontSize: 16)),
+                                        title: Text("Delete?",
+                                            style: AppStyles.getMediumTextStyle(
+                                                fontSize: 16)),
                                         content: Text(
                                           "Are you sure you want to delete this item from cart?",
-                                          style: AppStyles.getRegularTextStyle(fontSize: 14),
+                                          style: AppStyles.getRegularTextStyle(
+                                              fontSize: 14),
                                         ),
                                         actions: [
                                           TextButton(
-                                            onPressed: () => Navigator.pop(context),
+                                            onPressed: () =>
+                                                Navigator.pop(context),
                                             child: Text(
                                               'Cancel',
-                                              style: AppStyles.getMediumTextStyle(fontSize: 14),
+                                              style:
+                                                  AppStyles.getMediumTextStyle(
+                                                      fontSize: 14),
                                             ),
                                           ),
                                           TextButton(
                                             onPressed: () {
                                               //print(item);
                                               Navigator.pop(context);
-                                              runMutation({'cartId': cartData.cartId, 'itemId': item['id']});
+                                              runMutation({
+                                                'cartId': cartData.cartId,
+                                                'itemId': item['id']
+                                              });
                                             },
                                             child: Text(
                                               'OK',
-                                              style: AppStyles.getMediumTextStyle(fontSize: 14),
+                                              style:
+                                                  AppStyles.getMediumTextStyle(
+                                                      fontSize: 14),
                                             ),
                                           ),
                                         ],
                                       ),
                                     );
                                   },
-                                  icon: Icon(Icons.delete_outline, color: AppColors.primaryColor),
+                                  icon: Icon(Icons.delete_outline,
+                                      color: AppColors.primaryColor),
                                 );
                               }),
                         ),
@@ -413,7 +645,8 @@ class _CartViewState extends State<CartView> {
     );
   }
 
-  Container getMainMobileCart(Size size, CartData cartData, QueryResult result, Future<QueryResult<Object?>?> Function()? refetch) {
+  Container getMainMobileCart(Size size, CartData cartData, QueryResult result,
+      Future<QueryResult<Object?>?> Function()? refetch) {
     return Container(
       width: size.width,
       padding: EdgeInsets.all(size.width * 0.05),
@@ -434,19 +667,50 @@ class _CartViewState extends State<CartView> {
                 children: [
                   Column(
                     children: [
-                      SizedBox(height: 100, child: CachedNetworkImage(imageUrl: item['product']['image']['url'])),
+                      SizedBox(
+                          height: 100,
+                          child: CachedNetworkImage(
+                              imageUrl: item['product']['image']['url'])),
                       const SizedBox(height: 15),
-                      Text(item['product']['name'], style: AppStyles.getMediumTextStyle(fontSize: 15, color: AppColors.fontColor)),
+                      Text(item['product']['name'],
+                          style: AppStyles.getMediumTextStyle(
+                              fontSize: 15, color: AppColors.fontColor)),
                       const SizedBox(height: 10),
-                      BuildPriceWithOffer(
-                        price: f.format(item['product']['special_price'] ?? item['product']['price_range']['minimum_price']['regular_price']['value']),
-                        originalPrice: item['product']['price_range']['maximum_price']['regular_price']['value'].toString(),
-                        offer: item['product']['price_range']['maximum_price']['discount']['percent_off'] * 1.0,
+                      // BuildPriceWithOffer(
+                      //   price: f.format(item['product']['special_price'] ??
+                      //       item['product']['price_range']['minimum_price']
+                      //           ['regular_price']['value']),
+                      //   originalPrice: item['product']['price_range']
+                      //           ['maximum_price']['regular_price']['value']
+                      //       .toString(),
+                      //   offer: item['product']['price_range']['maximum_price']
+                      //           ['discount']['percent_off'] *
+                      //       1.0,
+                      //   priceSize: 17,
+                      //   currency: item['product']['price_range']
+                      //       ['minimum_price']['regular_price']['currency'],
+                      // ),
+                      CartPriceAddedDetails(
+                        price: f.format(item['product']['special_price'] ??
+                            item['product']['price_range']['minimum_price']
+                                ['regular_price']['value']),
+                        originalPrice: item['product']['price_range']
+                                ['maximum_price']['regular_price']['value']
+                            .toString(),
+                        offer: item['product']['price_range']['maximum_price']
+                                ['discount']['percent_off'] *
+                            1.0,
                         priceSize: 17,
-                        currency: item['product']['price_range']['minimum_price']['regular_price']['currency'],
+                        currency: item['product']['price_range']
+                            ['minimum_price']['regular_price']['currency'],
+                        item: item,
                       ),
                       const SizedBox(height: 10),
-                      getItemNoChanger(size: size, item: item, cartData: cartData, refetch: refetch),
+                      getItemNoChanger(
+                          size: size,
+                          item: item,
+                          cartData: cartData,
+                          refetch: refetch),
                     ],
                   ),
                   Align(
@@ -459,7 +723,8 @@ class _CartViewState extends State<CartView> {
                             showSnackBar(
                                 context: context,
                                 message: "Removed item from cart",
-                                backgroundColor: AppColors.snackbarSuccessBackgroundColor,
+                                backgroundColor:
+                                    AppColors.snackbarSuccessBackgroundColor,
                                 textColor: AppColors.snackbarSuccessTextColor);
                             // await cartData.getCartData(context, Provider.of<AuthToken>(context, listen: false));
                             refetch!();
@@ -468,7 +733,8 @@ class _CartViewState extends State<CartView> {
                             showSnackBar(
                               context: context,
                               message: error!.graphqlErrors[0].message,
-                              backgroundColor: AppColors.snackbarErrorBackgroundColor,
+                              backgroundColor:
+                                  AppColors.snackbarErrorBackgroundColor,
                               textColor: AppColors.snackbarErrorTextColor,
                             );
 
@@ -481,35 +747,44 @@ class _CartViewState extends State<CartView> {
                               showDialog(
                                 context: context,
                                 builder: (context) => AlertDialog(
-                                  title: Text("Delete?", style: AppStyles.getMediumTextStyle(fontSize: 16)),
+                                  title: Text("Delete?",
+                                      style: AppStyles.getMediumTextStyle(
+                                          fontSize: 16)),
                                   content: Text(
                                     "Are you sure you want to delete this item from cart?",
-                                    style: AppStyles.getRegularTextStyle(fontSize: 14),
+                                    style: AppStyles.getRegularTextStyle(
+                                        fontSize: 14),
                                   ),
                                   actions: [
                                     TextButton(
                                       onPressed: () => Navigator.pop(context),
                                       child: Text(
                                         'Cancel',
-                                        style: AppStyles.getMediumTextStyle(fontSize: 14),
+                                        style: AppStyles.getMediumTextStyle(
+                                            fontSize: 14),
                                       ),
                                     ),
                                     TextButton(
                                       onPressed: () {
                                         //print(item);
                                         Navigator.pop(context);
-                                        runMutation({'cartId': cartData.cartId, 'itemId': item['id']});
+                                        runMutation({
+                                          'cartId': cartData.cartId,
+                                          'itemId': item['id']
+                                        });
                                       },
                                       child: Text(
                                         'OK',
-                                        style: AppStyles.getMediumTextStyle(fontSize: 14),
+                                        style: AppStyles.getMediumTextStyle(
+                                            fontSize: 14),
                                       ),
                                     ),
                                   ],
                                 ),
                               );
                             },
-                            icon: Icon(Icons.delete_outline, color: AppColors.primaryColor),
+                            icon: Icon(Icons.delete_outline,
+                                color: AppColors.primaryColor),
                           );
                         }),
                   ),
@@ -551,21 +826,11 @@ class _CartViewState extends State<CartView> {
       children: [
         Container(
           decoration: BoxDecoration(
-            border: Border.all(width: 1, color: AppColors.evenFadedText),
-          ),
-          // padding: const EdgeInsets.symmetric(vertical: 10),
+              border: Border.all(width: 1, color: AppColors.evenFadedText),
+              borderRadius: BorderRadius.circular(10)),
           alignment: Alignment.center,
-          width: size.width * 0.1,
-          height: height ?? 50,
-          child: Text(item['quantity'].toString().padLeft(2, '0'), style: AppStyles.getRegularTextStyle(fontSize: 18, color: AppColors.fadedText)),
-        ),
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(width: 1, color: AppColors.evenFadedText),
-          ),
-          alignment: Alignment.center,
-          width: size.width * 0.1,
-          height: height ?? 50,
+          width: size.width * 0.35,
+          height: height ?? 40,
           child: FittedBox(
             child: Mutation(
                 options: MutationOptions(
@@ -578,34 +843,17 @@ class _CartViewState extends State<CartView> {
                   },
                   onError: (error) {
                     print(error);
-                    showSnackBar(context: context, message: error!.graphqlErrors[0].message, backgroundColor: Colors.red);
+                    showSnackBar(
+                        context: context,
+                        message: error!.graphqlErrors[0].message,
+                        backgroundColor: Colors.red);
                   },
                 ),
                 builder: (runMutation, result) {
-                  return Column(
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      InkWell(
-                        onTap: () {
-                          // cartList[index].noOfItems++;
-
-                          print(item['quantity']);
-                          item['quantity']++;
-                          deboucer.run(() {
-                            print(item['quantity']);
-                            runMutation({
-                              "input": {
-                                "cart_id": cartData.cartId,
-                                "cart_items": [
-                                  {"cart_item_id": item['id'], "quantity": item['quantity']}
-                                ]
-                              }
-                            });
-                          });
-                          setState(() {});
-                        },
-                        child:
-                            SizedBox(width: size.width * 0.1, height: height != null ? height * 0.5 : 24, child: Icon(Icons.expand_less, size: height != null ? height * 0.5 : 24)),
-                      ),
                       InkWell(
                         onTap: () {
                           // if (cartList[index].noOfItems != 0) cartList[index].noOfItems--;
@@ -619,7 +867,10 @@ class _CartViewState extends State<CartView> {
                                 "input": {
                                   "cart_id": cartData.cartId,
                                   "cart_items": [
-                                    {"cart_item_id": item['id'], "quantity": item['quantity']}
+                                    {
+                                      "cart_item_id": item['id'],
+                                      "quantity": item['quantity']
+                                    }
                                   ]
                                 }
                               });
@@ -627,12 +878,213 @@ class _CartViewState extends State<CartView> {
                           }
                           setState(() {});
                         },
-                        child:
-                            SizedBox(height: height != null ? height * 0.5 : 24, width: size.width * 0.1, child: Icon(Icons.expand_more, size: height != null ? height * 0.5 : 24)),
+                        child: SizedBox(
+                            width: size.width * 0.1,
+                            height: height != null ? height * 0.5 : 24,
+                            child: Icon(Icons.remove,
+                                size: height != null ? height * 0.5 : 24)),
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                            // border: Border.all(
+                            //     width: 1, color: AppColors.evenFadedText),
+                            ),
+                        // padding: const EdgeInsets.symmetric(vertical: 10),
+                        alignment: Alignment.center,
+                        width: size.width * 0.15,
+                        height: height ?? 50,
+                        child: Text(item['quantity'].toString().padLeft(2, '0'),
+                            style: AppStyles.getRegularTextStyle(
+                                fontSize: 18, color: AppColors.fadedText)),
+                      ),
+                      InkWell(
+                        onTap: () async {
+                          // cartList[index].noOfItems++;
+                          setState(() {});
+                          // print(item['quantity']);
+                          item['quantity']++;
+                          deboucer.run(() {
+                            // print(item['quantity']);
+                            runMutation({
+                              "input": {
+                                "cart_id": cartData.cartId,
+                                "cart_items": [
+                                  {
+                                    "cart_item_id": item['id'],
+                                    "quantity": item['quantity']
+                                  }
+                                ]
+                              }
+                            });
+                          });
+                        },
+                        child: SizedBox(
+                            height: height != null ? height * 0.5 : 24,
+                            width: size.width * 0.1,
+                            child: Icon(Icons.add,
+                                size: height != null ? height * 0.5 : 24)),
                       )
                     ],
                   );
                 }),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class GetHistory extends StatelessWidget {
+  const GetHistory({
+    super.key,
+    required this.data,
+    required this.homeData,
+  });
+
+  final Map<String, dynamic> data;
+  final Map<String, dynamic> homeData;
+
+  @override
+  Widget build(BuildContext context) {
+    num maxLength = 0;
+    List itemList = [];
+    var lastIndex = data['customer']['orders']['items'].length - 1;
+    for (var i = 0; i <= lastIndex; i++) {
+      if (data['customer']['orders']['items'][i]['status'] == "Complete") {
+        maxLength += data['customer']['orders']['items'][i]['items'].length;
+        itemList.add(data['customer']['orders']['items'][i]['items']);
+      } else {
+        maxLength = maxLength;
+      }
+    }
+    // var productModel = Items.fromJson(data['products']);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Text(
+          "Reorder",
+          style: AppStyles.getMediumTextStyle(fontSize: 16),
+        ),
+        SizedBox(height: 10),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: List.generate(itemList[0].length, (index) {
+              return Padding(
+                padding: EdgeInsets.only(
+                    right: index == itemList[0].length - 1 ? 0 : 10),
+                child: Container(
+                  width: 150,
+                  height: 250,
+                  decoration: BoxDecoration(
+                      color: AppColors.containerColor,
+                      border: Border.all(
+                        color: AppColors.primaryColor,
+                        width: 1,
+                      ),
+                      // boxShadow: [
+                      //   BoxShadow(
+                      //       color: AppColors.primaryColor, offset: Offset(1, 1)),
+                      //   BoxShadow(
+                      //       color: AppColors.primaryColor,
+                      //       offset: Offset(-1, -1)),
+                      // ],
+                      borderRadius: BorderRadius.circular(10)),
+                  child: Query(
+                      options: QueryOptions(
+                          document: ApiServices.searchSuggession,
+                          fetchPolicy: FetchPolicy.noCache,
+                          variables: {
+                            'searchQuery': itemList[0][index]['product_name'],
+                          }),
+                      builder: (result3, {fetchMore, refetch}) {
+                        if (result3.isLoading) {
+                          return BuildLoadingWidget(
+                              color: AppColors.primaryColor);
+                        }
+                        if (result3.hasException) {
+                          return Center(
+                            child: BuildErrorWidget(
+                              errorMsg:
+                                  result3.exception?.graphqlErrors[0].message,
+                              onRefresh: refetch,
+                            ),
+                          );
+                        }
+
+                        return Column(
+                          children: [
+                            Expanded(
+                              flex: 50,
+                              child: Container(
+                                padding: EdgeInsets.all(10),
+                                height: 100,
+                                child: CachedNetworkImage(
+                                  imageUrl: result3.data!['products']['items']
+                                      [0]['image']['url'],
+                                  // image from ApiServices.searchSuggession
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 20,
+                              child: Text(
+                                itemList[0][index]['product_name'],
+                                // text from CustomerApis.orderDetails
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            Expanded(
+                              flex: 10,
+                              child: Text.rich(
+                                  // maxLines: 2,
+                                  // overflow: TextOverflow.ellipsis,
+                                  // textAlign: TextAlign.center,
+                                  TextSpan(children: [
+                                TextSpan(text: "$currency "),
+                                TextSpan(
+                                  text: itemList[0][index]['product_sale_price']
+                                          ['value']
+                                      .toStringAsFixed(2),
+                                )
+                              ])),
+                            ),
+                            Query(
+                              options: QueryOptions(
+                                  document: gql(ApiServices.queryHome)),
+                              builder: (result4, {fetchMore, refetch}) {
+                                return Expanded(
+                                  flex: 30,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 15, horizontal: 15),
+                                    child: BuildButtonSingle(
+                                      typeName: result4.data!['homepage']
+                                          ['blocks']['data'][0]['__typename'],
+                                      width: 400,
+                                      title: 'ADD TO CART',
+                                      buttonColor: AppColors.buttonColor,
+                                      textColor: Colors.white,
+                                      svg: 'assets/svg/shopping-cart.svg',
+                                      parentSku: result4.data!['homepage']
+                                          ['blocks']['data'][0]['title'],
+                                      selectedSku: "",
+                                      quantity: 1,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        );
+                      }),
+                ),
+              );
+            }),
           ),
         ),
       ],

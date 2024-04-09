@@ -20,7 +20,8 @@ class _AppbarSearchServiceState extends State<AppbarSearchService> {
     return TextFieldSearch(
       label: 'Search',
       controller: _controller,
-      future: () => ApiServices().searchSuggessionApi(searchQuery: _controller.text, context: context),
+      future: () => ApiServices()
+          .searchSuggessionApi(searchQuery: _controller.text, context: context),
       itemsInView: 5,
       decoration: InputDecoration(
         border: OutlineInputBorder(
@@ -31,21 +32,27 @@ class _AppbarSearchServiceState extends State<AppbarSearchService> {
           borderRadius: BorderRadius.circular(300),
           borderSide: BorderSide(color: AppColors.evenFadedText),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         hintText: "Search",
-        hintStyle: AppStyles.getRegularTextStyle(fontSize: 14, color: AppColors.primaryColor),
+        hintStyle: AppStyles.getRegularTextStyle(
+            fontSize: 14, color: AppColors.primaryColor),
         suffixIcon: Padding(
           padding: const EdgeInsets.only(right: 10),
           child: IconButton(
             splashRadius: 25,
             onPressed: () {
-              context.push(Uri(path: '/${ProductView.route}', queryParameters: {"search": _controller.text}).toString());
+              context.push(Uri(
+                  path: '/${ProductView.route}',
+                  queryParameters: {"search": _controller.text}).toString());
             },
             icon: Icon(Icons.search, color: AppColors.fadedText),
           ),
         ),
       ),
-      onSubmitted: (value) => context.push(Uri(path: '/${ProductView.route}', queryParameters: {"search": _controller.text}).toString()),
+      onSubmitted: (value) => context.push(Uri(
+          path: '/${ProductView.route}',
+          queryParameters: {"search": _controller.text}).toString()),
     );
     //          TextField(
     //   controller: _controller,

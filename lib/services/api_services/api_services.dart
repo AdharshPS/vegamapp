@@ -66,15 +66,18 @@ query getCategories($filter: CategoryFilterInput, $pagesize: Int, $page: Int) {
  }''');
 
   // List the above data in a listview form on an overlay in search page
-  Future<List<SearchModel>> searchSuggessionApi({required searchQuery, required BuildContext context}) async {
+  Future<List<SearchModel>> searchSuggessionApi(
+      {required searchQuery, required BuildContext context}) async {
     var graphqlClient = GraphQLProvider.of(context);
-    QueryResult? result = await graphqlClient.value.query(WatchQueryOptions(document: searchSuggession, variables: {"searchQuery": searchQuery}));
+    QueryResult? result = await graphqlClient.value.query(WatchQueryOptions(
+        document: searchSuggession, variables: {"searchQuery": searchQuery}));
     List<SearchModel> searchModelList = [];
     if (result.data != null) {
       try {
         searchModelList = List<SearchModel>.generate(
           result.data!['products']['items'].length,
-          (index) => SearchModel.fromJson(result.data!['products']['items'][index]),
+          (index) =>
+              SearchModel.fromJson(result.data!['products']['items'][index]),
         );
         return searchModelList;
       } catch (e) {
@@ -101,44 +104,44 @@ query getCategories($filter: CategoryFilterInput, $pagesize: Int, $page: Int) {
         store_label
         __typename
         # If SliderBlock is available, uncomment this block
-        #... on SliderBlock{
-        #  templateType
-        #  slider_width
-        #  autoplay
-        #  show_slider_title
-        #  autoplay_timeout
-        #  autoplay_hover_pause
-        #  show_dots
-        #  banners {
-        #    image
-        #    layout
-        #    link_info {
-        #      category_id
-        #      external_url
-        #      link_type
-        #      link_url
-        #      open_tab
-        #      page_id
-        #      product_id
-        #      product_sku
-        #    }
-        #  }
-        #  sliders {
-        #    position
-        #    description
-        #    start_date
-        #    end_date
-        #    slider_image
-        #    link_info{
-        #      link_type
-        #      category_id
-        #      link_url
-        #      external_url
-        #      product_id
-        #      product_sku
-        #    }
-        #  }
-        #}
+        ... on SliderBlock{
+          templateType
+          slider_width
+          autoplay
+          show_slider_title
+          autoplay_timeout
+          autoplay_hover_pause
+          show_dots
+          banners {
+            image
+            layout
+            link_info {
+              category_id
+              external_url
+              link_type
+              link_url
+              open_tab
+              page_id
+              product_id
+              product_sku
+            }
+          }
+          sliders {
+            position
+            description
+            start_date
+            end_date
+            slider_image
+            link_info{
+              link_type
+              category_id
+              link_url
+              external_url
+              product_id
+              product_sku
+            }
+          }
+        }
         ... on BannerBlock {
           banner_template
           banneritems {

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -61,7 +60,8 @@ class _BuildButtonSingleState extends State<BuildButtonSingle> {
             document: gql(CartApis.addProductToCart),
             onCompleted: (result) {
               print(result);
-              cart.putCartCount(result?['addProductsToCart']['cart']['total_quantity']);
+              cart.putCartCount(
+                  result?['addProductsToCart']['cart']['total_quantity']);
               // Timer(const Duration(milliseconds: 1000), () => cart.getCartData(context, token));
               print(cart.cartCount);
               try {
@@ -70,7 +70,8 @@ class _BuildButtonSingleState extends State<BuildButtonSingle> {
                     backgroundColor: AppColors.snackbarErrorBackgroundColor,
                     textColor: AppColors.snackbarErrorTextColor,
                     context: context,
-                    message: result?['addProductsToCart']['user_errors'][0]['message'],
+                    message: result?['addProductsToCart']['user_errors'][0]
+                        ['message'],
                   );
                 } catch (e) {
                   print(e);
@@ -98,9 +99,13 @@ class _BuildButtonSingleState extends State<BuildButtonSingle> {
             onError: (data) {
               print("addProductToCarterror $data");
               try {
-                if (data!.graphqlErrors[0].extensions!['category'] == "graphql-authorization") {
+                if (data!.graphqlErrors[0].extensions!['category'] ==
+                    "graphql-authorization") {
                   cart.getCartData(context, token);
-                  showSnackBar(context: context, message: "Error occured, please try again.", backgroundColor: AppColors.snackbarErrorBackgroundColor);
+                  showSnackBar(
+                      context: context,
+                      message: "Error occured, please try again.",
+                      backgroundColor: AppColors.snackbarErrorBackgroundColor);
                 }
               } catch (e) {}
             }),
@@ -126,8 +131,11 @@ class _BuildButtonSingleState extends State<BuildButtonSingle> {
             style: ButtonStyle(
               // fixedSize: Size(widget.width * 0.4, widget.width * 0.1),
               maximumSize: MaterialStateProperty.all(const Size.fromHeight(40)),
-              shape: MaterialStateProperty.all(StadiumBorder(side: BorderSide(color: widget.buttonColor, width: 2))),
-              backgroundColor: MaterialStateProperty.resolveWith(getButtonColor),
+              shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5),
+              )),
+              backgroundColor:
+                  MaterialStateProperty.resolveWith(getButtonColor),
               foregroundColor: MaterialStateProperty.resolveWith(getTextColor),
               padding: MaterialStateProperty.all(const EdgeInsets.all(10)),
             ),
@@ -168,13 +176,17 @@ class _BuildButtonSingleState extends State<BuildButtonSingle> {
               }
             },
             child: result!.isLoading
-                ? BuildLoadingWidget(color: getTextColor(statesController.value))
+                ? BuildLoadingWidget(
+                    color: getTextColor(statesController.value))
                 : Stack(
                     children: [
                       Center(
                         child: Text(
                           widget.title,
-                          style: AppStyles.getMediumTextStyle(fontSize: widget.width * 0.028 > 14 ? 14 : widget.width * 0.028),
+                          style: AppStyles.getMediumTextStyle(
+                              fontSize: widget.width * 0.028 > 14
+                                  ? 14
+                                  : widget.width * 0.028),
                         ),
                       ),
                       // Align(

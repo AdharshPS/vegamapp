@@ -123,7 +123,8 @@ class CartApis {
       }
     }
   ''';
-  static String applyCouponToCart = r'''mutation applyCouponToCart($cartID: String!, $couponCode: String!){
+  static String applyCouponToCart =
+      r'''mutation applyCouponToCart($cartID: String!, $couponCode: String!){
   applyCouponToCart(input: { cart_id: $cartID, coupon_code: $couponCode }) {
     cart {
       total_quantity

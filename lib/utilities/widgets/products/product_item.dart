@@ -1,5 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:m2/services/api_services/product_apis.dart';
@@ -57,20 +60,25 @@ class _ProductItemState extends State<ProductItem> {
   Widget build(BuildContext context) {
     return InkWell(
       hoverColor: Colors.transparent,
-      onTap: () => context.push('/${ProductView.route}/${widget.productModel.urlKey}.${widget.productModel.urlSuffix}'),
+      onTap: () => context.push(
+          '/${ProductView.route}/${widget.productModel.urlKey}.${widget.productModel.urlSuffix}'),
       // onTap: () => context.pushNamed(ProductView.route, pathParameters: {'url': '${widget.productModel.urlKey}.${widget.productModel.urlSuffix}'}),
       onHover: (value) => setState(() => _isHovered = value),
       child: Container(
-        padding: const EdgeInsets.all(15),
+        padding: const EdgeInsets.all(10),
         constraints: const BoxConstraints(maxHeight: 400),
         decoration: BoxDecoration(
           color: AppColors.scaffoldColor,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: AppResponsive.isMobile(context)
-              ? [BoxShadow(color: AppColors.evenFadedText, blurRadius: 5)]
-              : !_isHovered
-                  ? null
-                  : [BoxShadow(color: AppColors.evenFadedText, blurRadius: 5)],
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            width: 1,
+            color: AppColors.evenFadedText,
+          ),
+          // boxShadow: AppResponsive.isMobile(context)
+          //     ? [BoxShadow(color: AppColors.evenFadedText, blurRadius: 1)]
+          //     : !_isHovered
+          //         ? null
+          //         : [BoxShadow(color: AppColors.evenFadedText, blurRadius: 1)],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,18 +97,25 @@ class _ProductItemState extends State<ProductItem> {
               child: Container(
                 decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: CachedNetworkImageProvider(widget.productModel.image!.url!),
+                    image: CachedNetworkImageProvider(
+                        widget.productModel.image!.url!),
                   ),
                 ),
                 alignment: Alignment.topRight,
                 child: Mutation(
                     options: MutationOptions(
                       document: gql(
-                        widget.productModel.wishlistItem != null ? ProductApi.removeProductsFromWishlist : ProductApi.addToWishList,
+                        widget.productModel.wishlistItem != null
+                            ? ProductApi.removeProductsFromWishlist
+                            : ProductApi.addToWishList,
                       ),
                       onError: (data) {
                         try {
-                          showSnackBar(context: context, message: data!.graphqlErrors[0].message, backgroundColor: AppColors.snackbarErrorBackgroundColor);
+                          showSnackBar(
+                              context: context,
+                              message: data!.graphqlErrors[0].message,
+                              backgroundColor:
+                                  AppColors.snackbarErrorBackgroundColor);
                         } catch (e) {}
                       },
                       onCompleted: (data) {
@@ -112,15 +127,21 @@ class _ProductItemState extends State<ProductItem> {
                             showSnackBar(
                               context: context,
                               message: widget.productModel.wishlistItem != null
-                                  ? data['removeProductsFromWishlist']['user_errors'][0]['message']
-                                  : data['addProductsToWishlist']['user_errors'][0]['message'],
+                                  ? data['removeProductsFromWishlist']
+                                      ['user_errors'][0]['message']
+                                  : data['addProductsToWishlist']['user_errors']
+                                      [0]['message'],
                               backgroundColor: Colors.red,
                             );
                           } catch (e) {
                             showSnackBar(
                               context: context,
-                              message: data['removeProductsFromWishlist'] != null ? "Removed from wishlist" : "Added to wishlist",
-                              backgroundColor: AppColors.snackbarSuccessBackgroundColor,
+                              message:
+                                  data['removeProductsFromWishlist'] != null
+                                      ? "Removed from wishlist"
+                                      : "Added to wishlist",
+                              backgroundColor:
+                                  AppColors.snackbarSuccessBackgroundColor,
                             );
                             if (widget.productModel.wishlistItem == null) {
                               getProductWishListData(context);
@@ -132,50 +153,115 @@ class _ProductItemState extends State<ProductItem> {
                           }
                           try {
                             if (widget.productModel.wishlistItem != null) {
-                              authToken.putWishlistCount(data['removeProductsFromWishlist']['wishlist']['items_count']);
+                              authToken.putWishlistCount(
+                                  data['removeProductsFromWishlist']['wishlist']
+                                      ['items_count']);
                             } else {
-                              authToken.putWishlistCount(data['addProductsToWishlist']['wishlist']['items_count']);
+                              authToken.putWishlistCount(
+                                  data['addProductsToWishlist']['wishlist']
+                                      ['items_count']);
                             }
                           } catch (e) {}
                         }
                       },
                     ),
                     builder: (RunMutation runMutation, QueryResult? mResult) {
-                      return InkWell(
-                        onTap: () {
-                          if (userData.data.wishlists?[0].id != null) {
-                            Map<String, dynamic> variables = {};
-
-                            if (widget.productModel.wishlistItem != null) {
-                              variables = {
-                                'wishlistId': userData.data.wishlists?[0].id,
-                                'wishlistItemsIds': [widget.productModel.wishlistItem]
-                              };
-                              // runMutation(variables);
-                            } else {
-                              variables = {
-                                'id': userData.data.wishlists?[0].id,
-                                'wishlistItems': [
-                                  {'sku': widget.sku, 'quantity': 1}
-                                ]
-                              };
-                            }
-
-                            runMutation(variables);
-                          } else {
-                            showSnackBar(
-                              context: context,
-                              message: "You must login to add items to wishlist",
-                              backgroundColor: Colors.red,
-                            );
-                          }
-                        },
-                        child: mResult!.isLoading
-                            ? BuildLoadingWidget(color: AppColors.primaryColor)
-                            : Icon(
-                                widget.productModel.wishlistItem != null ? Icons.favorite : Icons.favorite_outline,
-                                color: widget.productModel.wishlistItem != null ? Colors.red : AppColors.fadedText,
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (widget.originalPrice != null && widget.offer != 0)
+                            LayoutBuilder(
+                              builder: (context, constraints) => Container(
+                                // alignment: Alignment.center,
+                                // height: constraints.maxHeight * .28,
+                                constraints: BoxConstraints(
+                                  maxHeight: 50,
+                                  minHeight: 45,
+                                ),
+                                // height: AppResponsive.isMobile(context) ? 45 : 60,
+                                // width: 70,
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 1, vertical: 1),
+                                decoration: BoxDecoration(
+                                    color: AppColors.buttonColor,
+                                    borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(8),
+                                      // bottomLeft: Radius.circular(8),
+                                      bottomRight: Radius.circular(8),
+                                    )),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text.rich(
+                                      TextSpan(
+                                        text: '${widget.offer}%',
+                                        style: AppStyles.getMediumTextStyle(
+                                            fontSize: widget.offerSize ?? 12,
+                                            color: AppColors.containerColor),
+                                      ),
+                                    ),
+                                    Text.rich(
+                                      TextSpan(
+                                        text: 'off',
+                                        style: AppStyles.getMediumTextStyle(
+                                            fontSize: widget.offerSize ?? 12,
+                                            color: AppColors.containerColor),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
+                            ),
+                          Spacer(), //creating space
+                          InkWell(
+                            onTap: () {
+                              if (userData.data.wishlists?[0].id != null) {
+                                Map<String, dynamic> variables = {};
+
+                                if (widget.productModel.wishlistItem != null) {
+                                  variables = {
+                                    'wishlistId':
+                                        userData.data.wishlists?[0].id,
+                                    'wishlistItemsIds': [
+                                      widget.productModel.wishlistItem
+                                    ]
+                                  };
+                                  // runMutation(variables);
+                                } else {
+                                  variables = {
+                                    'id': userData.data.wishlists?[0].id,
+                                    'wishlistItems': [
+                                      {'sku': widget.sku, 'quantity': 1}
+                                    ]
+                                  };
+                                  // widget.productModel.wishlistItem =
+                                }
+
+                                runMutation(variables);
+                              } else {
+                                showSnackBar(
+                                  context: context,
+                                  message:
+                                      "You must login to add items to wishlist",
+                                  backgroundColor: Colors.red,
+                                );
+                              }
+                            },
+                            child: mResult!.isLoading
+                                ? BuildLoadingWidget(
+                                    color: AppColors.primaryColor)
+                                : Icon(
+                                    widget.productModel.wishlistItem != null
+                                        ? Icons.favorite
+                                        : Icons.favorite_outline,
+                                    color:
+                                        widget.productModel.wishlistItem != null
+                                            ? Colors.red
+                                            : AppColors.fadedText,
+                                  ),
+                          ),
+                        ],
                       );
                     }),
               ),
@@ -183,7 +269,8 @@ class _ProductItemState extends State<ProductItem> {
             const SizedBox(height: 5),
             Text(
               "${widget.productModel.name}",
-              style: AppStyles.getMediumTextStyle(fontSize: 14, color: AppColors.fadedText),
+              style: AppStyles.getMediumTextStyle(
+                  fontSize: 14, color: AppColors.fadedText),
               maxLines: 2,
             ),
             const SizedBox(height: 5),
@@ -211,7 +298,8 @@ class _ProductItemState extends State<ProductItem> {
                         textColor: Colors.white,
                         svg: 'assets/svg/shopping-cart.svg',
                         parentSku: widget.productModel.sku!,
-                        selectedSku: widget.productModel.variants?[0].product?.sku!,
+                        selectedSku:
+                            widget.productModel.variants?[0].product?.sku!,
                         quantity: 1,
                       ),
                       // const SizedBox(height: 5),
@@ -240,7 +328,8 @@ class _ProductItemState extends State<ProductItem> {
                           textColor: Colors.white,
                           svg: 'assets/svg/shopping-cart.svg',
                           parentSku: widget.productModel.sku!,
-                          selectedSku: widget.productModel.variants?[0].product?.sku!,
+                          selectedSku:
+                              widget.productModel.variants?[0].product?.sku!,
                           quantity: 1,
                         ),
                       ),
@@ -288,7 +377,8 @@ class _ProductItemState extends State<ProductItem> {
       ),
     );
 
-    widget.productModel.wishlistItem = result.data!['products']['items'][0]['wishlistData'];
+    widget.productModel.wishlistItem =
+        result.data!['products']['items'][0]['wishlistData'];
     isWishlistLoading = false;
     setState(() {});
   }

@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart' hide Store;
 import '../../api_services/api_services.dart';
@@ -51,8 +49,9 @@ abstract class _HomeDataBase with Store {
   getHomeData(BuildContext context) async {
     setLoading(true);
     var client = GraphQLProvider.of(context);
-    QueryResult? result = await client.value.query(WatchQueryOptions(document: gql(ApiServices.queryHome)));
-
+    QueryResult? result = await client.value
+        .query(WatchQueryOptions(document: gql(ApiServices.queryHome)));
+// ProductApi.mostViewedProducts
     if (result.hasException) {
       _hasExceptions = true;
       try {

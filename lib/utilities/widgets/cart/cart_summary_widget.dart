@@ -2,6 +2,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart%20';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
@@ -50,7 +51,8 @@ class _CartSummaryWidgetState extends State<CartSummaryWidget> {
   }
 
   getData() {
-    coupon = TextEditingController(text: cart.cartData['cart']['applied_coupons']?[0]['code'] ?? '');
+    coupon = TextEditingController(
+        text: cart.cartData['cart']['applied_coupons']?[0]['code'] ?? '');
 
     log(cart.cartData['cart']['applied_coupons'].toString());
     isAppliedCoupon = cart.cartData['cart']['applied_coupons'] != null;
@@ -74,7 +76,8 @@ class _CartSummaryWidgetState extends State<CartSummaryWidget> {
       return Container(
         width: size.width,
         constraints: const BoxConstraints(maxWidth: 500),
-        padding: EdgeInsets.all(size.width * 0.05 > 40 ? 40 : size.width * 0.05),
+        padding:
+            EdgeInsets.all(size.width * 0.05 > 40 ? 40 : size.width * 0.05),
         decoration: BoxDecoration(
           color: AppColors.dividerColor,
           borderRadius: BorderRadius.circular(18.0),
@@ -83,18 +86,24 @@ class _CartSummaryWidgetState extends State<CartSummaryWidget> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (widget.estimatedDelivery != null)
-              Text('Expected Delivery By: ${widget.estimatedDelivery} days', style: AppStyles.getRegularTextStyle(fontSize: 18, color: AppColors.buttonColor)),
+              Text('Expected Delivery By: ${widget.estimatedDelivery} days',
+                  style: AppStyles.getRegularTextStyle(
+                      fontSize: 18, color: AppColors.buttonColor)),
             if (widget.estimatedDelivery != null) const SizedBox(height: 20),
             Text(
               'Summary',
-              style: AppStyles.getMediumTextStyle(fontSize: 22, color: AppColors.fontColor),
+              style: AppStyles.getMediumTextStyle(
+                  fontSize: 22, color: AppColors.fontColor),
               softWrap: false,
             ),
             const SizedBox(height: 10),
             CartAmountListing(
               title: 'Subtotal',
-              currency: cart.cartData['cart']['prices']['subtotal_including_tax']['currency'],
-              money: double.parse(cart.cartData['cart']['prices']['subtotal_including_tax']['value'].toString()),
+              currency: cart.cartData['cart']['prices']
+                  ['subtotal_including_tax']['currency'],
+              money: double.parse(cart.cartData['cart']['prices']
+                      ['subtotal_including_tax']['value']
+                  .toString()),
             ),
             const SizedBox(height: 10),
             if (cart.cartData['cart']['applied_coupons'] != null)
@@ -102,11 +111,16 @@ class _CartSummaryWidgetState extends State<CartSummaryWidget> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: cart.cartData['cart']['prices']['discounts'].length,
-                separatorBuilder: (context, index) => const SizedBox(height: 10),
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 10),
                 itemBuilder: (context, index) => CartAmountListing(
-                  title: cart.cartData['cart']['prices']['discounts'][index]['label'],
-                  money: double.parse(cart.cartData['cart']['prices']['discounts'][index]['amount']['value'].toString()),
-                  currency: cart.cartData['cart']['prices']['discounts'][index]['amount']['currency'],
+                  title: cart.cartData['cart']['prices']['discounts'][index]
+                      ['label'],
+                  money: double.parse(cart.cartData['cart']['prices']
+                          ['discounts'][index]['amount']['value']
+                      .toString()),
+                  currency: cart.cartData['cart']['prices']['discounts'][index]
+                      ['amount']['currency'],
                 ),
               ),
             const SizedBox(height: 20),
@@ -122,16 +136,20 @@ class _CartSummaryWidgetState extends State<CartSummaryWidget> {
                       decoration: InputDecoration(
                         fillColor: Colors.white,
                         filled: true,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+                        contentPadding: const EdgeInsets.symmetric(
+                            vertical: 0, horizontal: 20),
                         border: OutlineInputBorder(
                           gapPadding: 0,
                           borderRadius: BorderRadius.zero,
-                          borderSide: BorderSide(color: AppColors.evenFadedText),
+                          borderSide:
+                              BorderSide(color: AppColors.evenFadedText),
                         ),
-                        hintStyle: AppStyles.getExtraLightTextStyle(fontSize: 13, color: AppColors.fadedText),
+                        hintStyle: AppStyles.getExtraLightTextStyle(
+                            fontSize: 13, color: AppColors.fadedText),
                         hintText: 'Enter your code',
                       ),
-                      style: AppStyles.getExtraLightTextStyle(fontSize: 13, color: AppColors.fadedText),
+                      style: AppStyles.getExtraLightTextStyle(
+                          fontSize: 13, color: AppColors.fadedText),
                       // validator: (value) => value != '' ? null : 'Enter Coupon code',
                     ),
                   ),
@@ -144,10 +162,15 @@ class _CartSummaryWidgetState extends State<CartSummaryWidget> {
                             //   isAppliedCoupon = !isAppliedCoupon;
                             // });
                             showSnackBar(
-                              backgroundColor: AppColors.snackbarSuccessBackgroundColor,
+                              backgroundColor:
+                                  AppColors.snackbarSuccessBackgroundColor,
                               textColor: AppColors.snackbarSuccessTextColor,
                               context: context,
-                              message: cart.cartData['cart']['applied_coupons'] == null ? 'Coupon Applied SuccessFully' : 'Coupon Removed SuccessFully',
+                              message: cart.cartData['cart']
+                                          ['applied_coupons'] ==
+                                      null
+                                  ? 'Coupon Applied SuccessFully'
+                                  : 'Coupon Removed SuccessFully',
                             );
                           }
                           if (widget.refetch != null) {
@@ -159,24 +182,34 @@ class _CartSummaryWidgetState extends State<CartSummaryWidget> {
                         onError: (error) {
                           print('$error');
                           showSnackBar(
-                            backgroundColor: AppColors.snackbarErrorBackgroundColor,
+                            backgroundColor:
+                                AppColors.snackbarErrorBackgroundColor,
                             textColor: AppColors.snackbarErrorTextColor,
                             context: context,
                             message: error!.graphqlErrors[0].message,
                           );
                         },
-                        document: gql(cart.cartData['cart']['applied_coupons'] == null ? CartApis.applyCouponToCart : CartApis.removeCouponFromCart),
+                        document: gql(
+                            cart.cartData['cart']['applied_coupons'] == null
+                                ? CartApis.applyCouponToCart
+                                : CartApis.removeCouponFromCart),
                       ),
                       builder: (runMutation, result) {
                         return InkWell(
                           onTap: () {
-                            if (cart.cartData['cart']['applied_coupons'] == null) {
+                            if (cart.cartData['cart']['applied_coupons'] ==
+                                null) {
                               log('messagerrrg');
-                              Map<String, dynamic> data = {'cartID': cart.cartId, 'couponCode': coupon.text};
+                              Map<String, dynamic> data = {
+                                'cartID': cart.cartId,
+                                'couponCode': coupon.text
+                              };
                               runMutation(data);
                             } else {
                               log('messagerr');
-                              Map<String, dynamic> data = {'cartId': cart.cartId};
+                              Map<String, dynamic> data = {
+                                'cartId': cart.cartId
+                              };
                               runMutation(data);
                               coupon.clear();
                             }
@@ -187,8 +220,11 @@ class _CartSummaryWidgetState extends State<CartSummaryWidget> {
                             color: AppColors.buttonColor,
                             alignment: Alignment.center,
                             child: Text(
-                              cart.cartData['cart']['applied_coupons'] == null ? 'Apply Discount' : 'Discard coupon',
-                              style: AppStyles.getRegularTextStyle(fontSize: 11, color: Colors.white),
+                              cart.cartData['cart']['applied_coupons'] == null
+                                  ? 'Apply Discount'
+                                  : 'Discard coupon',
+                              style: AppStyles.getRegularTextStyle(
+                                  fontSize: 11, color: Colors.white),
                               textAlign: TextAlign.center,
                             ),
                           ),
@@ -206,16 +242,27 @@ class _CartSummaryWidgetState extends State<CartSummaryWidget> {
               spacing: 20,
               runSpacing: 20,
               children: [
-                Text('Order Total', style: AppStyles.getSemiBoldTextStyle(fontSize: 20, color: AppColors.fontColor)),
+                Text('Order Total',
+                    style: AppStyles.getSemiBoldTextStyle(
+                        fontSize: 20, color: AppColors.fontColor)),
                 Text.rich(
                   TextSpan(
                     children: [
-                      if (cart.cartData['cart']['prices']['grand_total']['currency'] != null)
+                      if (cart.cartData['cart']['prices']['grand_total']
+                              ['currency'] !=
+                          null)
                         TextSpan(
-                            text: '${cart.cartData['cart']['prices']['grand_total']['currency']} ',
-                            style: AppStyles.getSemiBoldTextStyle(fontSize: 20, color: AppColors.fontColor)),
+                            text:
+                                '${cart.cartData['cart']['prices']['grand_total']['currency']} ',
+                            style: AppStyles.getSemiBoldTextStyle(
+                                fontSize: 20, color: AppColors.fontColor)),
                       TextSpan(
-                          text: f.format(cart.cartData['cart']['prices']['grand_total']['value']), style: AppStyles.getMediumTextStyle(fontSize: 20, color: AppColors.fontColor))
+                          // text: f.format(cart.cartData['cart']['prices']
+                          //     ['subtotal_including_tax']['value']),
+                          text: f.format(cart.cartData['cart']['prices']
+                              ['grand_total']['value']),
+                          style: AppStyles.getMediumTextStyle(
+                              fontSize: 20, color: AppColors.fontColor))
                     ],
                   ),
                 ),
@@ -230,10 +277,13 @@ class _CartSummaryWidgetState extends State<CartSummaryWidget> {
               //   shadowColor: AppColors.shadowColor,
               // ),
               style: ButtonStyle(
-                shape: MaterialStateProperty.all(StadiumBorder(side: BorderSide(width: 2, color: AppColors.buttonColor))),
+                shape: MaterialStateProperty.all(StadiumBorder(
+                    side: BorderSide(width: 2, color: AppColors.buttonColor))),
                 shadowColor: MaterialStateProperty.all(AppColors.shadowColor),
-                backgroundColor: MaterialStateProperty.resolveWith(getButtonColor),
-                foregroundColor: MaterialStateProperty.resolveWith(getTextColor),
+                backgroundColor:
+                    MaterialStateProperty.resolveWith(getButtonColor),
+                foregroundColor:
+                    MaterialStateProperty.resolveWith(getTextColor),
                 padding: MaterialStateProperty.all(const EdgeInsets.all(15)),
               ),
               statesController: buttonStateController,

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:m2/utilities/utilities.dart';
 
 // Widget to show the price of the product with offer, if any, under product listing
-class BuildPriceWithOffer extends StatelessWidget {
-  const BuildPriceWithOffer({
+class CartPriceAddedDetails extends StatelessWidget {
+  const CartPriceAddedDetails({
     super.key,
     this.price,
     required this.priceSize,
@@ -12,6 +12,7 @@ class BuildPriceWithOffer extends StatelessWidget {
     this.offer,
     this.offerSize,
     this.currency,
+    this.item,
   });
 
   final String? price;
@@ -22,6 +23,8 @@ class BuildPriceWithOffer extends StatelessWidget {
   final double? offerSize;
   final String? currency;
 
+  final dynamic item;
+
   @override
   Widget build(BuildContext context) {
     return Text.rich(
@@ -31,7 +34,7 @@ class BuildPriceWithOffer extends StatelessWidget {
         children: [
           if (price != null)
             TextSpan(
-              text: '${double.parse(price!).toStringAsFixed(2)}   ',
+              text: '${double.parse(price!) * item['quantity']}   ',
               style: AppStyles.getMediumTextStyle(
                   fontSize: priceSize, color: AppColors.fontColor),
             ),
@@ -46,7 +49,7 @@ class BuildPriceWithOffer extends StatelessWidget {
                 )),
           if (originalPrice != null && offer != 0)
             TextSpan(
-              text: '${originalPrice} ',
+              text: '${double.parse(originalPrice!) * item['quantity']} ',
               style: TextStyle(
                 fontSize: offerSize,
                 fontWeight: FontWeight.w500,
@@ -54,12 +57,12 @@ class BuildPriceWithOffer extends StatelessWidget {
                 decoration: TextDecoration.lineThrough,
               ),
             ),
-          // if (originalPrice != null && offer != 0)
-          //   TextSpan(
-          //     text: '   $offer% off',
-          //     style: AppStyles.getMediumTextStyle(
-          //         fontSize: offerSize ?? 12, color: AppColors.buttonColor),
-          //   ),
+          if (originalPrice != null && offer != 0)
+            TextSpan(
+              text: '   $offer% off',
+              style: AppStyles.getMediumTextStyle(
+                  fontSize: offerSize ?? 12, color: AppColors.buttonColor),
+            ),
         ],
       ),
     );

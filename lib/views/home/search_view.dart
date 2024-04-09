@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart%20';
 import 'package:go_router/go_router.dart';
 import 'package:m2/services/api_services/api_services.dart';
 import 'package:m2/services/search_services.dart';
+import 'package:m2/services/state_management/home/home_data.dart';
 import 'package:m2/utilities/utilities.dart';
 import 'package:m2/utilities/widgets/scaffold_body.dart';
 import 'package:m2/views/product_views/product_view.dart';
@@ -37,7 +39,8 @@ class _SearchViewState extends State<SearchView> {
             child: TextFieldSearch(
               label: 'Search',
               controller: searchQuery,
-              future: () => ApiServices().searchSuggessionApi(searchQuery: searchQuery.text, context: context),
+              future: () => ApiServices().searchSuggessionApi(
+                  searchQuery: searchQuery.text, context: context),
               itemsInView: 5,
               decoration: InputDecoration(
                 border: OutlineInputBorder(
@@ -48,21 +51,28 @@ class _SearchViewState extends State<SearchView> {
                   borderRadius: BorderRadius.circular(300),
                   borderSide: BorderSide(color: AppColors.evenFadedText),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                 hintText: "Search",
-                hintStyle: AppStyles.getRegularTextStyle(fontSize: 14, color: AppColors.primaryColor),
+                hintStyle: AppStyles.getRegularTextStyle(
+                    fontSize: 14, color: AppColors.primaryColor),
                 suffixIcon: Padding(
                   padding: const EdgeInsets.only(right: 10),
                   child: IconButton(
                     splashRadius: 25,
                     onPressed: () {
-                      context.push(Uri(path: '/${ProductView.route}', queryParameters: {"search": searchQuery.text}).toString());
+                      context.push(Uri(
+                              path: '/${ProductView.route}',
+                              queryParameters: {"search": searchQuery.text})
+                          .toString());
                     },
                     icon: Icon(Icons.search, color: AppColors.fadedText),
                   ),
                 ),
               ),
-              onSubmitted: (value) => context.push(Uri(path: '/${ProductView.route}', queryParameters: {"search": searchQuery.text}).toString()),
+              onSubmitted: (value) => context.push(Uri(
+                  path: '/${ProductView.route}',
+                  queryParameters: {"search": searchQuery.text}).toString()),
             ),
           ),
         ],

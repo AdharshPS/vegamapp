@@ -1,4 +1,3 @@
-
 import 'package:m2/services/api_services/customer_apis.dart';
 import 'package:m2/services/models/user.dart';
 import 'package:mobx/mobx.dart';
@@ -32,7 +31,8 @@ abstract class _UserDataBase with Store {
   Future<bool> getUserData(BuildContext context) async {
     setLoading(true);
     var graphqlClient = GraphQLProvider.of(context);
-    QueryResult? result = await graphqlClient.value.query(WatchQueryOptions(document: CustomerApis.requestUserData));
+    QueryResult? result = await graphqlClient.value
+        .query(WatchQueryOptions(document: CustomerApis.requestUserData));
     // log(result.toString());
     // log(jsonEncode(result.data));
     if (result.hasException) {
@@ -41,7 +41,8 @@ abstract class _UserDataBase with Store {
     } else {
       addressesList.clear();
       _data = User.fromJson(result.data!['customer']);
-      addressesList.addAll(ObservableList<Addresses>.of(_data.addresses ?? <Addresses>[]));
+      addressesList.addAll(
+          ObservableList<Addresses>.of(_data.addresses ?? <Addresses>[]));
     }
     setLoading(false);
     return true;

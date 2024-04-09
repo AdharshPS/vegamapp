@@ -32,27 +32,36 @@ class _ProductDescriptionState extends State<ProductDescription> {
 
   // if configurable, show media gallery of selected product
   List<Map<String, dynamic>> mediaGallery = [];
+
   @override
   void initState() {
     // Initialize product model
     productModel = ProductModel.fromJson(widget.data['products']);
 
-    originalMedia = List<Map<String, dynamic>>.from(widget.data['products']['items'][0]['media_gallery']);
+    originalMedia = List<Map<String, dynamic>>.from(
+        widget.data['products']['items'][0]['media_gallery']);
     mediaGallery = originalMedia;
-    if (productModel.items![0].variants != null && productModel.items![0].variants!.isNotEmpty) {
+    if (productModel.items![0].variants != null &&
+        productModel.items![0].variants!.isNotEmpty) {
       mediaGallery = productModel.items![0].variants![0].product!.mediaGallery!;
     }
 
-    price = productModel.items![0].specialPrice ?? productModel.items![0].priceRange!.minimumPrice!.regularPrice!.value.toString();
-    originalPrice = productModel.items![0].priceRange!.maximumPrice!.regularPrice!.value.toString();
-    offer = productModel.items![0].priceRange!.maximumPrice!.discount!.percentOff;
+    price = productModel.items![0].specialPrice ??
+        productModel.items![0].priceRange!.minimumPrice!.regularPrice!.value
+            .toString();
+    originalPrice = productModel
+        .items![0].priceRange!.maximumPrice!.regularPrice!.value
+        .toString();
+    offer =
+        productModel.items![0].priceRange!.maximumPrice!.discount!.percentOff;
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    return AppResponsive(mobile: getMobileChildren(size), desktop: getDesktopChildren(size));
+    return AppResponsive(
+        mobile: getMobileChildren(size), desktop: getDesktopChildren(size));
   }
 
   Widget getMobileChildren(Size size) {
@@ -60,15 +69,24 @@ class _ProductDescriptionState extends State<ProductDescription> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       children: [
         // Show mini app bar with categories
-        MiniAppBar(screenWidth: size.width, navigationChild: widget.data['products']['items'][0]['categories']),
+        MiniAppBar(
+            screenWidth: size.width,
+            navigationChild: widget.data['products']['items'][0]['categories']),
         const SizedBox(height: 10),
         // Show media widget
-        ProductMediaContainer(width: size.width, data: mediaGallery),
+        ProductMediaContainer(
+          width: size.width,
+          data: mediaGallery,
+          offer: offer,
+          offerSize: 13,
+          originalPrice: originalPrice,
+        ),
         const SizedBox(height: 30),
         // Name
         Text(
           "${productModel.items?[0].name}",
-          style: AppStyles.getMediumTextStyle(fontSize: 22, color: AppColors.fontColor),
+          style: AppStyles.getMediumTextStyle(
+              fontSize: 22, color: AppColors.fontColor),
         ),
         const SizedBox(height: 10),
         // show rating
@@ -95,17 +113,25 @@ class _ProductDescriptionState extends State<ProductDescription> {
           onUpdated: (newMedia) {
             if (newMedia != null) {
               setState(() => mediaGallery = newMedia);
-              ProductMediaContainerState.refreshCurrentDisplayWidget(newMedia[0]['url']);
+              ProductMediaContainerState.refreshCurrentDisplayWidget(
+                  newMedia[0]['url']);
             }
           },
         ),
         const SizedBox(height: 30),
         // Description widget
-        BuildDescriptionReview(width: size.width, description: productModel.items![0].description!.html!, sku: productModel.items![0].sku!),
+        BuildDescriptionReview(
+            width: size.width,
+            description: productModel.items![0].description!.html!,
+            sku: productModel.items![0].sku!),
         const SizedBox(height: 20),
         // show related products if any
-        if (productModel.items![0].relatedProducts != null && productModel.items![0].relatedProducts!.isNotEmpty)
-          TwoColoredTitle(title: 'Related Products', firstHeadColor: AppColors.primaryColor, secondHeadColor: AppColors.fontColor),
+        if (productModel.items![0].relatedProducts != null &&
+            productModel.items![0].relatedProducts!.isNotEmpty)
+          TwoColoredTitle(
+              title: 'Related Products',
+              firstHeadColor: AppColors.primaryColor,
+              secondHeadColor: AppColors.fontColor),
         if (productModel.items![0].relatedProducts != null)
           LayoutBuilder(builder: (context, constraints) {
             return GridView.builder(
@@ -121,10 +147,21 @@ class _ProductDescriptionState extends State<ProductDescription> {
                 mainAxisExtent: 400,
               ),
               itemBuilder: (context, index) {
-                var price = productModel.items![0].relatedProducts![index].specialPrice ??
-                    productModel.items![0].relatedProducts![index].priceRange!.minimumPrice!.regularPrice!.value.toString();
-                var originalPrice = productModel.items![0].relatedProducts![index].priceRange!.maximumPrice!.regularPrice!.value.toString();
-                var offer = productModel.items![0].relatedProducts![index].priceRange!.maximumPrice!.discount!.percentOff;
+                var price = productModel
+                        .items![0].relatedProducts![index].specialPrice ??
+                    productModel.items![0].relatedProducts![index].priceRange!
+                        .minimumPrice!.regularPrice!.value
+                        .toString();
+                var originalPrice = productModel
+                    .items![0]
+                    .relatedProducts![index]
+                    .priceRange!
+                    .maximumPrice!
+                    .regularPrice!
+                    .value
+                    .toString();
+                var offer = productModel.items![0].relatedProducts![index]
+                    .priceRange!.maximumPrice!.discount!.percentOff;
                 return ProductItem(
                   productModel: productModel.items![0].relatedProducts![index],
                   price: price,
@@ -142,7 +179,11 @@ class _ProductDescriptionState extends State<ProductDescription> {
   Widget getDesktopChildren(Size size) {
     return LayoutBuilder(builder: (context, constraints) {
       return ListView(
-        padding: EdgeInsets.symmetric(horizontal: constraints.maxWidth > 1400 ? (constraints.maxWidth - 1400) / 2 : 20, vertical: 20),
+        padding: EdgeInsets.symmetric(
+            horizontal: constraints.maxWidth > 1400
+                ? (constraints.maxWidth - 1400) / 2
+                : 20,
+            vertical: 20),
         children: [
           Row(children: [
             const Expanded(flex: 1, child: SizedBox()),
@@ -150,7 +191,10 @@ class _ProductDescriptionState extends State<ProductDescription> {
             Expanded(
               flex: 1,
               child: LayoutBuilder(builder: (context, constraints) {
-                return MiniAppBar(screenWidth: constraints.maxWidth, navigationChild: widget.data['products']['items'][0]['categories']);
+                return MiniAppBar(
+                    screenWidth: constraints.maxWidth,
+                    navigationChild: widget.data['products']['items'][0]
+                        ['categories']);
               }),
             ),
           ]),
@@ -161,6 +205,9 @@ class _ProductDescriptionState extends State<ProductDescription> {
                 child: ProductMediaContainer(
                   width: size.width,
                   data: mediaGallery,
+                  offer: offer,
+                  offerSize: 13,
+                  originalPrice: originalPrice,
                 ),
               ),
               const SizedBox(width: 50),
@@ -174,7 +221,8 @@ class _ProductDescriptionState extends State<ProductDescription> {
                       const SizedBox(height: 30),
                       Text(
                         "${productModel.items?[0].name}",
-                        style: AppStyles.getMediumTextStyle(fontSize: 22, color: AppColors.fontColor),
+                        style: AppStyles.getMediumTextStyle(
+                            fontSize: 22, color: AppColors.fontColor),
                       ),
                       const SizedBox(height: 10),
                       BuildRating(
@@ -199,7 +247,9 @@ class _ProductDescriptionState extends State<ProductDescription> {
                         onUpdated: (newMedia) {
                           if (newMedia != null) {
                             setState(() => mediaGallery = newMedia);
-                            ProductMediaContainerState.refreshCurrentDisplayWidget(newMedia[0]['url']);
+                            ProductMediaContainerState
+                                .refreshCurrentDisplayWidget(
+                                    newMedia[0]['url']);
                           }
                         },
                       ),
@@ -210,10 +260,17 @@ class _ProductDescriptionState extends State<ProductDescription> {
             ],
           ),
           const SizedBox(height: 30),
-          BuildDescriptionReview(width: size.width, description: productModel.items![0].description!.html!, sku: productModel.items![0].sku!),
+          BuildDescriptionReview(
+              width: size.width,
+              description: productModel.items![0].description!.html!,
+              sku: productModel.items![0].sku!),
           const SizedBox(height: 20),
-          if (productModel.items![0].relatedProducts != null && productModel.items![0].relatedProducts!.isNotEmpty)
-            TwoColoredTitle(title: 'Related Products', firstHeadColor: AppColors.primaryColor, secondHeadColor: AppColors.fontColor),
+          if (productModel.items![0].relatedProducts != null &&
+              productModel.items![0].relatedProducts!.isNotEmpty)
+            TwoColoredTitle(
+                title: 'Related Products',
+                firstHeadColor: AppColors.primaryColor,
+                secondHeadColor: AppColors.fontColor),
           if (productModel.items![0].relatedProducts != null)
             LayoutBuilder(builder: (context, constraints) {
               return GridView.builder(
@@ -229,12 +286,24 @@ class _ProductDescriptionState extends State<ProductDescription> {
                   mainAxisExtent: 400,
                 ),
                 itemBuilder: (context, index) {
-                  var price = productModel.items![0].relatedProducts![index].specialPrice ??
-                      productModel.items![0].relatedProducts![index].priceRange!.minimumPrice!.regularPrice!.value.toString();
-                  var originalPrice = productModel.items![0].relatedProducts![index].priceRange!.maximumPrice!.regularPrice!.value.toString();
-                  var offer = productModel.items![0].relatedProducts![index].priceRange!.maximumPrice!.discount!.percentOff;
+                  var price = productModel
+                          .items![0].relatedProducts![index].specialPrice ??
+                      productModel.items![0].relatedProducts![index].priceRange!
+                          .minimumPrice!.regularPrice!.value
+                          .toString();
+                  var originalPrice = productModel
+                      .items![0]
+                      .relatedProducts![index]
+                      .priceRange!
+                      .maximumPrice!
+                      .regularPrice!
+                      .value
+                      .toString();
+                  var offer = productModel.items![0].relatedProducts![index]
+                      .priceRange!.maximumPrice!.discount!.percentOff;
                   return ProductItem(
-                    productModel: productModel.items![0].relatedProducts![index],
+                    productModel:
+                        productModel.items![0].relatedProducts![index],
                     price: price,
                     originalPrice: originalPrice,
                     offer: offer,

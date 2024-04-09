@@ -171,6 +171,18 @@ class CustomerApis {
     }
   ''';
 
+  static String mostViewedProductsQuery = r'''
+    mostViewedProducts(search:"", pageSize: 20, currentPage: 1) {
+      currentPage
+      items {
+        sku
+      }
+      pageSize
+      totalPages
+      total_count
+    }
+  ''';
+
   static String orderDetails = r'''
     query Orders($page:Int!){
       customer {
@@ -193,7 +205,6 @@ class CustomerApis {
               product_sale_price{
                   value
               }
-              
             }
             status
           }

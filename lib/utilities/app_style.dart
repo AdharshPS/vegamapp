@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'utilities.dart';
 
 class AppStyles {
-  static TextStyle getExtraLightTextStyle({required double fontSize, Color? color, bool isCurrency = false}) {
+  static TextStyle getExtraLightTextStyle(
+      {required double fontSize, Color? color, bool isCurrency = false}) {
     return TextStyle(
       fontSize: fontSize,
       fontFamily: isCurrency ? null : "Poppins",
@@ -12,7 +13,8 @@ class AppStyles {
     );
   }
 
-  static TextStyle getLightTextStyle({required double fontSize, Color? color, bool isCurrency = false}) {
+  static TextStyle getLightTextStyle(
+      {required double fontSize, Color? color, bool isCurrency = false}) {
     return TextStyle(
       fontSize: fontSize,
       fontFamily: isCurrency ? null : "Poppins",
@@ -21,7 +23,8 @@ class AppStyles {
     );
   }
 
-  static TextStyle getRegularTextStyle({required double fontSize, Color? color, bool isCurrency = false}) {
+  static TextStyle getRegularTextStyle(
+      {required double fontSize, Color? color, bool isCurrency = false}) {
     return TextStyle(
       fontSize: fontSize,
       fontFamily: isCurrency ? null : "Poppins",
@@ -30,7 +33,8 @@ class AppStyles {
     );
   }
 
-  static TextStyle getBoldTextStyle({required double fontSize, Color? color, bool isCurrency = false}) {
+  static TextStyle getBoldTextStyle(
+      {required double fontSize, Color? color, bool isCurrency = false}) {
     return TextStyle(
       fontSize: fontSize,
       fontFamily: isCurrency ? null : "Poppins",
@@ -39,7 +43,8 @@ class AppStyles {
     );
   }
 
-  static TextStyle getSemiBoldTextStyle({required double fontSize, Color? color, bool isCurrency = false}) {
+  static TextStyle getSemiBoldTextStyle(
+      {required double fontSize, Color? color, bool isCurrency = false}) {
     return TextStyle(
       fontSize: fontSize,
       fontFamily: isCurrency ? null : "Poppins",
@@ -48,7 +53,8 @@ class AppStyles {
     );
   }
 
-  static TextStyle getMediumTextStyle({required double fontSize, Color? color, bool isCurrency = false}) {
+  static TextStyle getMediumTextStyle(
+      {required double fontSize, Color? color, bool isCurrency = false}) {
     return TextStyle(
       fontSize: fontSize,
       fontFamily: isCurrency ? null : "Poppins",
@@ -60,7 +66,9 @@ class AppStyles {
   static ButtonStyle filledButtonStyle = ButtonStyle(
     // fixedSize: Size(widget.width * 0.4, widget.width * 0.1),
     maximumSize: MaterialStateProperty.all(const Size.fromHeight(40)),
-    shape: MaterialStateProperty.all(StadiumBorder(side: BorderSide(color: AppColors.buttonColor, width: 2))),
+    shape: MaterialStateProperty.all(RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(5),
+        side: BorderSide(color: AppColors.buttonColor, width: 2))),
     backgroundColor: MaterialStateProperty.resolveWith(getButtonColor),
     foregroundColor: MaterialStateProperty.resolveWith(getTextColor),
     padding: MaterialStateProperty.all(const EdgeInsets.all(10)),
@@ -68,13 +76,20 @@ class AppStyles {
   static ButtonStyle outlineButtonStyle = ButtonStyle(
     // fixedSize: Size(widget.width * 0.4, widget.width * 0.1),
     maximumSize: MaterialStateProperty.all(const Size.fromHeight(40)),
-    shape: MaterialStateProperty.all(StadiumBorder(side: BorderSide(color: AppColors.buttonColor, width: 2))),
+    shape: MaterialStateProperty.all(RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(5),
+        side: BorderSide(color: AppColors.buttonColor, width: 2))),
     backgroundColor: const MaterialStatePropertyAll(Colors.transparent),
     foregroundColor: MaterialStatePropertyAll(AppColors.primaryColor),
     padding: MaterialStateProperty.all(const EdgeInsets.all(10)),
   );
 
-  static List<BoxShadow> defaultShadow = [BoxShadow(color: AppColors.fadedText.withOpacity(0.3), blurRadius: 5, offset: const Offset(0, 3))];
+  static List<BoxShadow> defaultShadow = [
+    BoxShadow(
+        color: AppColors.fadedText.withOpacity(0.3),
+        blurRadius: 5,
+        offset: const Offset(0, 3))
+  ];
 }
 
 // List of various text styles used within the app
